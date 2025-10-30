@@ -1,0 +1,20 @@
+Run this command to manually create the config file:
+
+echo '<VirtualHost *:443>
+    ServerName db.biggestlogs.com
+    DocumentRoot /var/www/html/phpmyadmin
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/biggestlogs.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/biggestlogs.com/privkey.pem
+    <Directory /var/www/html/phpmyadmin>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+<VirtualHost *:80>
+    ServerName db.biggestlogs.com
+    RewriteEngine On
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</VirtualHost>' > /etc/apache2/sites-available/db.biggestlogs.com.conf && a2ensite db.biggestlogs.com.conf && apache2ctl configtest && systemctl restart apache2 && echo "DONE! Visit https://db.biggestlogs.com"
+

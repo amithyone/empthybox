@@ -1,0 +1,52 @@
+
+
+<?php $__env->startSection('title', 'Select SMS Provider - BiggestLogs'); ?>
+
+<?php $__env->startSection('content'); ?>
+<div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 md:py-8 pb-20 md:pb-8">
+    <h1 class="text-2xl md:text-3xl font-bold mb-2 md:mb-3 gradient-text">📱 Choose SMS Provider</h1>
+    <p class="text-xs md:text-sm text-gray-400 mb-5 md:mb-8">Pick a provider to request numbers and receive codes. You can switch anytime.</p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 md:gap-6">
+        <a href="<?php echo e(route('sms.index', ['provider' => 'smspool'])); ?>" class="block bg-dark-200 border-2 border-dark-300 rounded-2xl p-6 md:p-8 hover:border-yellow-accent transition shadow-lg shadow-red-accent/10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3 md:gap-4">
+                    <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-red-accent to-yellow-accent flex items-center justify-center text-white font-bold text-lg md:text-xl">S</div>
+                    <div>
+                        <div class="text-lg md:text-xl font-semibold text-gray-200">SMSPool</div>
+                        <div class="text-xs md:text-sm text-gray-400 mt-1">Broad coverage • Fast</div>
+                    </div>
+                </div>
+                <span class="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 rounded-full <?php echo e($activeProvider === 'smspool' ? 'bg-yellow-accent/20 text-yellow-accent border border-yellow-accent/30' : 'bg-dark-300 text-gray-400 border border-dark-400'); ?>"><?php echo e($activeProvider === 'smspool' ? 'Active' : 'Select'); ?></span>
+            </div>
+            <div class="mt-4 md:mt-5">
+                <span class="inline-block text-[11px] md:text-xs bg-dark-300 border border-dark-400 text-gray-400 px-2 md:px-3 py-1 md:py-1.5 rounded">Recommended</span>
+            </div>
+        </a>
+
+        <a href="<?php echo e(route('sms.index', ['provider' => 'tigersms'])); ?>" class="block bg-dark-200 border-2 border-dark-300 rounded-2xl p-6 md:p-8 hover:border-yellow-accent transition shadow-lg shadow-red-accent/10">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center gap-3 md:gap-4">
+                    <div class="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-yellow-accent to-red-accent flex items-center justify-center text-white font-bold text-lg md:text-xl">T</div>
+                    <div>
+                        <div class="text-lg md:text-xl font-semibold text-gray-200">TigerSMS</div>
+                        <div class="text-xs md:text-sm text-gray-400 mt-1">Alternative • Flexible</div>
+                    </div>
+                </div>
+                <span class="text-[10px] md:text-xs px-2 md:px-3 py-1 md:py-1.5 rounded-full <?php echo e($activeProvider === 'tigersms' ? 'bg-yellow-accent/20 text-yellow-accent border border-yellow-accent/30' : 'bg-dark-300 text-gray-400 border border-dark-400'); ?>"><?php echo e($activeProvider === 'tigersms' ? 'Active' : 'Select'); ?></span>
+            </div>
+        </a>
+    </div>
+
+    <div class="mt-6 md:mt-8">
+        <a href="<?php echo e(route('sms.inbox')); ?>" class="inline-flex items-center gap-2 text-yellow-accent hover:text-red-accent transition text-sm">
+            <span>Go to Inbox</span>
+            <span>→</span>
+        </a>
+    </div>
+</div>
+<?php $__env->stopSection(); ?>
+
+
+
+<?php echo $__env->make('layouts.app', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH C:\Users\LENOVO LEGION\Documents\Biggestlogs\resources\views/sms/select.blade.php ENDPATH**/ ?>

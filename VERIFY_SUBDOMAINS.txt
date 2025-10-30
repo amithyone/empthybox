@@ -1,0 +1,76 @@
+=================================================================
+  VERIFY SUBDOMAIN CONFIGURATION
+=================================================================
+
+Run these commands to check:
+
+=================================================================
+
+1. Check if config file was created:
+=================================================================
+
+ls -la /etc/apache2/sites-available/ | grep biggestlogs
+
+=================================================================
+
+2. Check enabled sites:
+=================================================================
+
+ls -la /etc/apache2/sites-enabled/ | grep biggestlogs
+
+=================================================================
+
+3. Try to create the config file again (copy entire block):
+=================================================================
+
+cat > /etc/apache2/sites-available/db.biggestlogs.com.conf << 'EOF'
+<VirtualHost *:443>
+    ServerName db.biggestlogs.com
+    DocumentRoot /var/www/html/phpmyadmin
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/biggestlogs.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/biggestlogs.com/privkey.pem
+    <Directory /var/www/html/phpmyadmin>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+
+<VirtualHost *:80>
+    ServerName db.biggestlogs.com
+    RewriteEngine On
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</VirtualHost>
+EOF
+
+=================================================================
+
+4. Enable and restart:
+=================================================================
+
+a2ensite db.biggestlogs.com.conf
+apache2ctl configtest
+systemctl restart apache2
+
+=================================================================
+
+5. Check status:
+=================================================================
+
+apache2ctl -S
+
+=================================================================
+
+6. Test subdomains:
+=================================================================
+
+curl -I https://server.biggestlogs.com
+curl -I https://db.biggestlogs.com
+
+=================================================================
+
+Run these commands one by one to see what's happening.
+
+=================================================================
+

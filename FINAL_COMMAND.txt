@@ -1,0 +1,12 @@
+===============================================================
+COMPLETE THE COMMAND - COPY THIS AND RUN IT
+===============================================================
+
+Run this command to complete:
+
+a2ensite db.biggestlogs.com.conf && apache2ctl configtest && systemctl restart apache2 && echo "DONE! Visit https://db.biggestlogs.com"
+
+===============================================================
+THAT'S ALL YOU NEED!
+===============================================================
+

@@ -1,0 +1,61 @@
+=================================================================
+  CONFIGURE SUBDOMAINS - COPY THIS COMMAND
+=================================================================
+
+Go to: Webmin → Others → Command Shell
+
+Copy and paste this ENTIRE command:
+
+=================================================================
+
+cat > /etc/apache2/sites-available/server.biggestlogs.com.conf << 'EOFWB'
+<VirtualHost *:443>
+    ServerName server.biggestlogs.com
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/biggestlogs.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/biggestlogs.com/privkey.pem
+    ProxyPreserveHost On
+    ProxyPass / https://localhost:10000/
+    ProxyPassReverse / https://localhost:10000/
+    SSLProxyEngine on
+    SSLProxyVerify none
+</VirtualHost>
+<VirtualHost *:80>
+    ServerName server.biggestlogs.com
+    RewriteEngine On
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</VirtualHost>
+EOFWB
+
+cat > /etc/apache2/sites-available/db.biggestlogs.com.conf << 'EOFDB'
+<VirtualHost *:443>
+    ServerName db.biggestlogs.com
+    DocumentRoot /var/www/html/phpmyadmin
+    SSLEngine on
+    SSLCertificateFile /etc/letsencrypt/live/biggestlogs.com/fullchain.pem
+    SSLCertificateKeyFile /etc/letsencrypt/live/biggestlogs.com/privkey.pem
+    <Directory /var/www/html/phpmyadmin>
+        Options -Indexes +FollowSymLinks
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+<VirtualHost *:80>
+    ServerName db.biggestlogs.com
+    RewriteEngine On
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [R=301,L]
+</VirtualHost>
+EOFDB
+
+a2enmod proxy proxy_http ssl rewrite && a2ensite server.biggestlogs.com.conf && a2ensite db.biggestlogs.com.conf && apache2ctl configtest && systemctl restart apache2 && echo "" && echo "============================================" && echo "  SUBDOMAINS CONFIGURED!" && echo "============================================" && echo "" && echo "Webmin: https://server.biggestlogs.com" && echo "phpMyAdmin: https://db.biggestlogs.com" && echo "Main Site: https://biggestlogs.com" && echo "" && echo "Wait 5 minutes for DNS propagation" && echo "============================================"
+
+=================================================================
+
+Press Enter and wait 30 seconds...
+
+THEN ACCESS:
+- https://server.biggestlogs.com (Webmin)
+- https://db.biggestlogs.com (phpMyAdmin)
+
+=================================================================
+
