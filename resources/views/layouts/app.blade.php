@@ -56,9 +56,7 @@
 
     <!-- Main Content -->
     <main class="min-h-screen pb-20 md:pb-24">
-        <div class="pt-16 md:pt-20">
-            @yield('content')
-        </div>
+        @yield('content')
     </main>
 
     <!-- Bottom Navigation (Mobile) -->
