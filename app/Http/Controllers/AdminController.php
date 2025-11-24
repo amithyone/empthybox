@@ -335,6 +335,21 @@ class AdminController extends Controller
             $wallet = $transaction->wallet;
             $wallet->increment('balance', $transaction->amount);
             $wallet->increment('total_deposited', $transaction->amount);
+
+            // Create deposit record
+            \App\Models\Deposit::create([
+                'user_id' => $transaction->user_id,
+                'wallet_id' => $wallet->id,
+                'transaction_id' => $transaction->id,
+                'amount' => $transaction->amount,
+                'final_amount' => $transaction->final_amount ?? $transaction->amount,
+                'gateway' => $transaction->gateway ?? 'manual',
+                'reference' => $transaction->reference,
+                'status' => 'completed',
+                'description' => $transaction->description ?? 'Deposit approved',
+                'gateway_response' => $transaction->gateway_response,
+                'completed_at' => now(),
+            ]);
         });
 
         // Send receipt email

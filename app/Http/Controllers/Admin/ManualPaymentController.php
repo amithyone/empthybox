@@ -8,6 +8,7 @@ use App\Models\BankingDetail;
 use App\Models\Order;
 use App\Models\Transaction;
 use App\Models\Wallet;
+use App\Models\Deposit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -87,7 +88,7 @@ class ManualPaymentController extends Controller
                     'payment_method' => 'manual',
                 ]);
 
-                // Update transaction if exists
+                // Update or create transaction
                 if ($manualPayment->transaction_id) {
                     $transaction = Transaction::find($manualPayment->transaction_id);
                     if ($transaction) {
@@ -95,6 +96,27 @@ class ManualPaymentController extends Controller
                             'status' => 'completed',
                         ]);
                     }
+                } else {
+                    // Create transaction if it doesn't exist
+                    $wallet = $manualPayment->user->wallet ?? Wallet::create([
+                        'user_id' => $manualPayment->user_id,
+                        'balance' => 0,
+                        'total_deposited' => 0,
+                        'total_withdrawn' => 0,
+                    ]);
+
+                    $transaction = Transaction::create([
+                        'user_id' => $manualPayment->user_id,
+                        'wallet_id' => $wallet->id,
+                        'type' => 'purchase',
+                        'amount' => $manualPayment->amount,
+                        'gateway' => 'manual',
+                        'status' => 'completed',
+                        'reference' => $manualPayment->reference,
+                        'description' => 'Manual payment for order #' . ($order->order_number ?? $order->id),
+                    ]);
+
+                    $manualPayment->update(['transaction_id' => $transaction->id]);
                 }
 
                 // Mark product as sold and deliver order
@@ -113,21 +135,48 @@ class ManualPaymentController extends Controller
                 $wallet = $manualPayment->user->wallet ?? Wallet::create([
                     'user_id' => $manualPayment->user_id,
                     'balance' => 0,
+                    'total_deposited' => 0,
+                    'total_withdrawn' => 0,
                 ]);
 
-                $wallet->increment('balance', $manualPayment->amount);
+                // Check for duplicate deposit to prevent multiple entries
+                $existingDeposit = Deposit::where('reference', $manualPayment->reference)
+                    ->where('user_id', $manualPayment->user_id)
+                    ->where('status', 'completed')
+                    ->first();
 
-                // Create transaction
-                Transaction::create([
-                    'user_id' => $manualPayment->user_id,
-                    'wallet_id' => $wallet->id,
-                    'type' => 'deposit',
-                    'amount' => $manualPayment->amount,
-                    'gateway' => 'manual',
-                    'status' => 'completed',
-                    'reference' => $manualPayment->reference,
-                    'description' => 'Manual payment deposit - Approved',
-                ]);
+                if (!$existingDeposit) {
+                    // Increment wallet balance and total_deposited
+                    $wallet->increment('balance', $manualPayment->amount);
+                    $wallet->increment('total_deposited', $manualPayment->amount);
+
+                    // Create transaction
+                    $transaction = Transaction::create([
+                        'user_id' => $manualPayment->user_id,
+                        'wallet_id' => $wallet->id,
+                        'type' => 'deposit',
+                        'amount' => $manualPayment->amount,
+                        'gateway' => 'manual',
+                        'status' => 'completed',
+                        'reference' => $manualPayment->reference,
+                        'description' => 'Manual payment deposit - Approved',
+                    ]);
+
+                    // Create deposit record
+                    Deposit::create([
+                        'user_id' => $manualPayment->user_id,
+                        'wallet_id' => $wallet->id,
+                        'transaction_id' => $transaction->id,
+                        'manual_payment_id' => $manualPayment->id,
+                        'amount' => $manualPayment->amount,
+                        'final_amount' => $manualPayment->amount,
+                        'gateway' => 'manual',
+                        'reference' => $manualPayment->reference,
+                        'status' => 'completed',
+                        'description' => 'Manual payment deposit - Approved',
+                        'completed_at' => now(),
+                    ]);
+                }
             }
 
             DB::commit();

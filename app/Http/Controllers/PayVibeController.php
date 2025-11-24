@@ -161,6 +161,21 @@ class PayVibeController extends Controller
                         $wallet = $transaction->wallet;
                         $wallet->increment('balance', $originalAmount);
                         $wallet->increment('total_deposited', $originalAmount);
+
+                        // Create deposit record
+                        \App\Models\Deposit::create([
+                            'user_id' => $transaction->user_id,
+                            'wallet_id' => $wallet->id,
+                            'transaction_id' => $transaction->id,
+                            'amount' => $originalAmount,
+                            'final_amount' => $transactionAmount,
+                            'gateway' => 'payvibe',
+                            'reference' => $transaction->reference,
+                            'status' => 'completed',
+                            'description' => 'PayVibe wallet deposit',
+                            'gateway_response' => $transaction->gateway_response,
+                            'completed_at' => now(),
+                        ]);
                     });
                 }
 
