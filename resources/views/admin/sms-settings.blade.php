@@ -3,7 +3,7 @@
 @section('title', 'SMS Service Settings - Admin')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-20 md:pt-24 pb-20 md:pb-8">
+<div class="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-16 md:pt-20 pb-20 md:pb-8">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl md:text-3xl font-bold gradient-text">SMS Service Settings</h1>
         <a href="{{ route('admin.dashboard') }}" class="text-yellow-accent hover:text-red-accent transition">← Back</a>

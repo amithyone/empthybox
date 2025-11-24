@@ -3,7 +3,7 @@
 @section('title', 'SMS Service Coming Soon - BiggestLogs')
 
 @section('content')
-<div class="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-20 md:pt-24 pb-20 md:pb-8 text-center">
+<div class="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-16 md:pt-20 pb-20 md:pb-8 text-center">
     <div class="bg-gradient-to-br from-yellow-accent/10 via-red-accent/10 to-yellow-accent/10 border-2 border-yellow-accent/30 rounded-xl md:rounded-2xl p-8 md:p-12 mb-6 relative overflow-hidden">
         <div class="absolute top-0 right-0 text-8xl md:text-9xl opacity-10">🚀</div>
         <div class="relative z-10">

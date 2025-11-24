@@ -3,7 +3,7 @@
 @section('title', 'Admin - Products')
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 pt-20 md:pt-24 pb-6">
+<div class="max-w-6xl mx-auto px-4 pt-16 md:pt-20 pb-6">
   <div class="flex items-center justify-between mb-6">
     <h1 class="text-2xl font-bold gradient-text">Products</h1>
     <a href="{{ route('admin.dashboard') }}" class="text-yellow-accent hover:text-red-accent transition">← Back to Dashboard</a>
