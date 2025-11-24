@@ -61,7 +61,7 @@
 
     <!-- Bottom Navigation (Mobile) -->
     @auth
-    <nav class="fixed bottom-0 left-0 right-0 bg-dark-200 border-t border-red-accent/30 z-[9999] md:hidden backdrop-blur-sm shadow-2xl">
+    <nav class="fixed bottom-0 left-0 right-0 bg-dark-200 border-t border-red-accent/30 z-[9999] md:hidden backdrop-blur-sm shadow-2xl" style="z-index: 9999 !important;">
         <div class="flex justify-around items-center h-16 px-1">
             <a href="{{ route('home') }}" class="flex flex-col items-center justify-center flex-1 h-full {{ request()->routeIs('home') ? 'text-yellow-accent' : 'text-gray-400' }} transition">
                 <span class="text-xl mb-0.5">🏠</span>

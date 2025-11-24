@@ -30,8 +30,8 @@
     <!-- Products Grid -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         @forelse($products as $product)
-        <div class="bg-dark-200 border-2 border-dark-300 hover:border-yellow-accent/60 rounded-lg overflow-hidden hover:shadow-2xl hover:shadow-yellow-accent/30 transition-all group relative">
-            <div class="absolute inset-0 bg-gradient-to-br from-red-accent/0 via-yellow-accent/0 to-red-accent/0 group-hover:from-red-accent/10 group-hover:via-yellow-accent/10 group-hover:to-red-accent/10 transition-all rounded-lg"></div>
+        <div class="bg-dark-200 border-2 border-dark-300 hover:border-yellow-accent/60 rounded-lg overflow-hidden hover:shadow-2xl hover:shadow-yellow-accent/30 transition-all group relative z-0">
+            <div class="absolute inset-0 bg-gradient-to-br from-red-accent/0 via-yellow-accent/0 to-red-accent/0 group-hover:from-red-accent/10 group-hover:via-yellow-accent/10 group-hover:to-red-accent/10 transition-all rounded-lg z-0"></div>
             <div class="p-4 md:p-6 relative z-10">
                 <div class="flex items-start justify-between mb-2">
                     <h3 class="text-lg md:text-xl font-bold text-gray-200 group-hover:text-yellow-accent transition pr-2">{{ $product->name }}</h3>
