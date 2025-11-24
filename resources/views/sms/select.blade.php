@@ -3,7 +3,7 @@
 @section('title', 'Select SMS Provider - BiggestLogs')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-16 md:pt-20 pb-20 md:pb-8">
+<div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-16 md:pt-20 mt-[100px] pb-20 md:pb-8">
     <div class="flex items-center justify-between mb-4">
         <div>
             <h1 class="text-2xl md:text-3xl font-bold gradient-text">📱 Choose SMS Provider</h1>
