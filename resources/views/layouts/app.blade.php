@@ -14,10 +14,10 @@
 </head>
 <body class="bg-dark-100 text-gray-200 min-h-screen font-sans">
     <!-- Custom Alert Toast Container -->
-    <div id="alert-container" class="fixed top-16 md:top-20 right-2 md:right-4 z-[110] space-y-2 max-w-xs md:max-w-sm w-full px-2 md:px-0"></div>
+    <div id="alert-container" class="fixed top-14 md:top-16 right-2 md:right-4 z-[110] space-y-2 max-w-xs md:max-w-sm w-full px-2 md:px-0"></div>
 
     <!-- Navigation -->
-    <nav class="bg-dark-200 border-b border-red-accent/30 sticky top-0 z-[100] backdrop-blur-sm shadow-lg shadow-red-accent/10">
+    <nav class="bg-dark-200 border-b border-red-accent/30 fixed top-0 left-0 right-0 z-[100] backdrop-blur-sm shadow-lg shadow-red-accent/10">
         <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
             <div class="flex justify-between items-center h-14 md:h-16">
                 <div class="flex items-center">
@@ -55,7 +55,7 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="min-h-screen pb-20 md:pb-24">
+    <main class="min-h-screen pb-20 md:pb-24 pt-14 md:pt-16">
         @yield('content')
     </main>
 
