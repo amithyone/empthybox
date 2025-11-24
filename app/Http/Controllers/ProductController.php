@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Category;
 use App\Models\Product;
+use App\Models\PaymentGateway;
 use Illuminate\Http\Request;
 
 class ProductController extends Controller
@@ -42,7 +43,10 @@ class ProductController extends Controller
             ->limit(6)
             ->get();
 
-        return view('products.show', compact('product', 'relatedProducts'));
+        // Get active payment gateways
+        $paymentGateways = PaymentGateway::getActive();
+
+        return view('products.show', compact('product', 'relatedProducts', 'paymentGateways'));
     }
 }
 

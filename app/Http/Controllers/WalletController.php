@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Transaction;
 use App\Models\Wallet;
 use App\Models\Deposit;
+use App\Models\PaymentGateway;
 use App\Services\PayVibeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -78,14 +79,23 @@ class WalletController extends Controller
             ['path' => request()->url(), 'query' => request()->query()]
         );
 
-        return view('wallet.index', compact('wallet', 'transactions'))->with('transactions', $paginated);
+        // Get active payment gateways
+        $paymentGateways = PaymentGateway::getActive();
+
+        return view('wallet.index', compact('wallet', 'transactions', 'paymentGateways'))->with('transactions', $paginated);
     }
 
     public function deposit(Request $request)
     {
+        // Get valid gateway codes from database
+        $validGateways = PaymentGateway::where('is_active', true)
+            ->where('is_enabled', true)
+            ->pluck('code')
+            ->toArray();
+        
         $request->validate([
             'amount' => 'required|numeric|min:1',
-            'gateway' => 'required|in:paystack,stripe,razorpay,payvibe,btcpay,coingate,manual',
+            'gateway' => 'required|in:' . implode(',', $validGateways),
         ]);
 
         $wallet = auth()->user()->wallet ?? Wallet::create([

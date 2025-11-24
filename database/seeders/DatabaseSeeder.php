@@ -14,6 +14,9 @@ class DatabaseSeeder extends Seeder
 {
     public function run()
     {
+        // Seed payment gateways
+        $this->call(PaymentGatewaySeeder::class);
+
         // Create admin user
         $admin = User::firstOrCreate(
             ['email' => 'admin@biggestlogs.com'],

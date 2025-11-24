@@ -100,15 +100,15 @@
                         <label class="block text-sm font-medium mb-2 text-gray-300">Payment Method</label>
                         <select name="payment_method" id="payment_method" class="w-full bg-dark-300 border-2 border-dark-400 text-gray-200 rounded-xl p-3 focus:border-yellow-accent focus:ring-2 focus:ring-yellow-accent/20 transition outline-none" required>
                             @if(auth()->user()->wallet && (auth()->user()->wallet->balance ?? 0) >= $product->price)
-                            <option value="wallet" class="bg-dark-300">Wallet (Balance: ₦{{ number_format(auth()->user()->wallet->balance ?? 0, 2) }})</option>
+                            <option value="wallet" class="bg-dark-300">💳 Wallet (Balance: ₦{{ number_format(auth()->user()->wallet->balance ?? 0, 2) }})</option>
                             @endif
-                            <option value="paystack" class="bg-dark-300">Paystack</option>
-                            <option value="stripe" class="bg-dark-300">Stripe</option>
-                            <option value="razorpay" class="bg-dark-300">Razorpay</option>
-                            <option value="payvibe" class="bg-dark-300">PayVibe</option>
-                            <option value="btcpay" class="bg-dark-300">BTCPay Server</option>
-                            <option value="coingate" class="bg-dark-300">CoinGate</option>
-                            <option value="manual" class="bg-dark-300">Manual Payment (Bank Transfer)</option>
+                            @forelse($paymentGateways ?? [] as $gateway)
+                                <option value="{{ $gateway->code }}" class="bg-dark-300">
+                                    {{ $gateway->icon }} {{ $gateway->display_name }}
+                                </option>
+                            @empty
+                                <option value="manual" class="bg-dark-300">🏦 Manual Payment (Bank Transfer)</option>
+                            @endforelse
                         </select>
                     </div>
                     <button type="submit" class="w-full bg-gradient-to-r from-red-accent to-yellow-accent hover:from-red-dark hover:to-yellow-dark text-white py-3 rounded-xl font-semibold transition glow-button relative shadow-lg shadow-red-accent/40 hover:shadow-xl hover:shadow-yellow-accent/50">
