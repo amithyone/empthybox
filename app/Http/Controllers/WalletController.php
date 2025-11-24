@@ -24,17 +24,61 @@ class WalletController extends Controller
             'balance' => 0,
         ]);
         
-        // Get deposits and purchases separately
+        // Get deposits from deposits table
         $deposits = $user->deposits()
             ->latest()
-            ->paginate(10, ['*'], 'deposits_page');
+            ->get()
+            ->map(function ($deposit) {
+                return (object) [
+                    'id' => $deposit->id,
+                    'type' => 'deposit',
+                    'amount' => $deposit->amount,
+                    'description' => $deposit->description,
+                    'gateway' => $deposit->gateway,
+                    'status' => $deposit->status,
+                    'reference' => $deposit->reference,
+                    'created_at' => $deposit->created_at,
+                    'updated_at' => $deposit->updated_at,
+                ];
+            });
         
-        $purchases = $user->transactions()
-            ->where('type', 'purchase')
+        // Get purchases and other transactions (excluding deposits)
+        $transactions = $user->transactions()
+            ->where('type', '!=', 'deposit')
             ->latest()
-            ->paginate(10, ['*'], 'purchases_page');
+            ->get()
+            ->map(function ($transaction) {
+                return (object) [
+                    'id' => $transaction->id,
+                    'type' => $transaction->type,
+                    'amount' => $transaction->amount,
+                    'description' => $transaction->description,
+                    'gateway' => $transaction->gateway,
+                    'status' => $transaction->status,
+                    'reference' => $transaction->reference,
+                    'created_at' => $transaction->created_at,
+                    'updated_at' => $transaction->updated_at,
+                ];
+            });
 
-        return view('wallet.index', compact('wallet', 'deposits', 'purchases'));
+        // Merge and sort by created_at descending
+        $allTransactions = $deposits->merge($transactions)
+            ->sortByDesc('created_at')
+            ->values();
+
+        // Paginate manually
+        $perPage = 20;
+        $currentPage = request()->get('page', 1);
+        $items = $allTransactions->slice(($currentPage - 1) * $perPage, $perPage)->all();
+        $paginated = new \Illuminate\Pagination\LengthAwarePaginator(
+            $items,
+            $allTransactions->count(),
+            $perPage,
+            $currentPage,
+            ['path' => request()->url(), 'query' => request()->query()]
+        );
+
+        return view('wallet.index', compact('wallet', 'transactions'))->with('transactions', $paginated);
     }
 
     public function deposit(Request $request)

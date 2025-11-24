@@ -66,19 +66,25 @@
             <div class="border-b border-dark-300 pb-4 last:border-0">
                 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                     <div>
-                        <p class="font-semibold text-gray-200">{{ $transaction->description }}</p>
-                        <p class="text-xs md:text-sm text-gray-400">{{ $transaction->created_at->format('M d, Y h:i A') }}</p>
+                        <p class="font-semibold text-gray-200">{{ $transaction->description ?? 'N/A' }}</p>
+                        <p class="text-xs md:text-sm text-gray-400">
+                            @if(is_object($transaction->created_at))
+                                {{ $transaction->created_at->format('M d, Y h:i A') }}
+                            @else
+                                {{ \Carbon\Carbon::parse($transaction->created_at)->format('M d, Y h:i A') }}
+                            @endif
+                        </p>
                         @if($transaction->gateway)
                         <p class="text-xs text-gray-500">Via {{ ucfirst($transaction->gateway) }}</p>
                         @endif
                     </div>
                     <div class="text-left sm:text-right">
                         <p class="font-bold text-lg {{ $transaction->type === 'deposit' || $transaction->type === 'refund' ? 'text-green-400' : 'text-red-accent' }}">
-                            {{ $transaction->type === 'deposit' || $transaction->type === 'refund' ? '+' : '-' }}₦{{ number_format($transaction->amount, 2) }}
+                            {{ $transaction->type === 'deposit' || $transaction->type === 'refund' ? '+' : '-' }}₦{{ number_format($transaction->amount ?? 0, 2) }}
                         </p>
                         <span class="text-xs px-2 py-1 rounded 
-                            {{ $transaction->status === 'completed' ? 'bg-green-600/20 text-green-400 border border-green-500/30' : 'bg-yellow-accent/20 text-yellow-accent border border-yellow-accent/30' }}">
-                            {{ ucfirst($transaction->status) }}
+                            {{ ($transaction->status === 'completed' || $transaction->status === 'approved') ? 'bg-green-600/20 text-green-400 border border-green-500/30' : ($transaction->status === 'failed' || $transaction->status === 'rejected' ? 'bg-red-600/20 text-red-400 border border-red-500/30' : 'bg-yellow-accent/20 text-yellow-accent border border-yellow-accent/30') }}">
+                            {{ ucfirst($transaction->status ?? 'pending') }}
                         </span>
                     </div>
                 </div>
