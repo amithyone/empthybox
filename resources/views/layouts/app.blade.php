@@ -14,10 +14,10 @@
 </head>
 <body class="bg-dark-100 text-gray-200 min-h-screen font-sans">
     <!-- Custom Alert Toast Container -->
-    <div id="alert-container" class="fixed top-16 md:top-20 right-2 md:right-4 z-50 space-y-2 max-w-xs md:max-w-sm w-full px-2 md:px-0"></div>
+    <div id="alert-container" class="fixed top-16 md:top-20 right-2 md:right-4 z-[110] space-y-2 max-w-xs md:max-w-sm w-full px-2 md:px-0"></div>
 
     <!-- Navigation -->
-    <nav class="bg-dark-200 border-b border-red-accent/30 sticky top-0 z-40 backdrop-blur-sm shadow-lg shadow-red-accent/10">
+    <nav class="bg-dark-200 border-b border-red-accent/30 sticky top-0 z-[100] backdrop-blur-sm shadow-lg shadow-red-accent/10">
         <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
             <div class="flex justify-between items-center h-14 md:h-16">
                 <div class="flex items-center">
@@ -61,7 +61,7 @@
 
     <!-- Bottom Navigation (Mobile) -->
     @auth
-    <nav class="fixed bottom-0 left-0 right-0 bg-dark-200 border-t border-red-accent/30 z-50 md:hidden backdrop-blur-sm shadow-2xl">
+    <nav class="fixed bottom-0 left-0 right-0 bg-dark-200 border-t border-red-accent/30 z-[100] md:hidden backdrop-blur-sm shadow-2xl">
         <div class="flex justify-around items-center h-16 px-1">
             <a href="{{ route('home') }}" class="flex flex-col items-center justify-center flex-1 h-full {{ request()->routeIs('home') ? 'text-yellow-accent' : 'text-gray-400' }} transition">
                 <span class="text-xl mb-0.5">🏠</span>
