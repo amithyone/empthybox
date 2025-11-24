@@ -3,7 +3,7 @@
 @section('title', 'Forgot Password - BiggestLogs')
 
 @section('content')
-<div class="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 pt-16 md:pt-20 mt-[100px] pb-20 md:pb-8">
+<div class="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 pt-16 md:pt-20 mt-[100px] pb-20 md:pb-8" style="margin-top: 100px;">
     <div class="w-full max-w-md">
         <!-- Logo/Header -->
         <div class="text-center mb-8">

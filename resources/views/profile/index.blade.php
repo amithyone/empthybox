@@ -3,7 +3,7 @@
 @section('title', 'Profile Settings - BiggestLogs')
 
 @section('content')
-<div class="max-w-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-16 md:pt-20 mt-[100px] pb-20 md:pb-8">
+<div class="max-w-2xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-16 md:pt-20 mt-[100px] pb-20 md:pb-8" style="margin-top: 100px;">
     <div class="flex items-center justify-between mb-6">
         <h1 class="text-2xl md:text-3xl font-bold gradient-text">Profile Settings</h1>
         <button onclick="history.back()" class="text-yellow-accent hover:text-red-accent transition text-sm">← Back</button>
