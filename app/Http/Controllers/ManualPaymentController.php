@@ -7,6 +7,8 @@ use App\Models\BankingDetail;
 use App\Models\Order;
 use App\Models\Product;
 use App\Models\Transaction;
+use App\Models\Deposit;
+use App\Models\Wallet;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
@@ -70,11 +72,20 @@ class ManualPaymentController extends Controller
             'notes' => $request->notes,
         ]);
 
+        // Get or create wallet
+        $wallet = auth()->user()->wallet ?? Wallet::create([
+            'user_id' => auth()->id(),
+            'balance' => 0,
+            'total_deposited' => 0,
+            'total_withdrawn' => 0,
+        ]);
+
         // If this is for an order, create pending transaction
         if ($request->order_id) {
             $order = Order::findOrFail($request->order_id);
             $transaction = Transaction::create([
                 'user_id' => auth()->id(),
+                'wallet_id' => $wallet->id,
                 'type' => 'purchase',
                 'amount' => $request->amount,
                 'gateway' => 'manual',
@@ -84,6 +95,19 @@ class ManualPaymentController extends Controller
             ]);
 
             $manualPayment->update(['transaction_id' => $transaction->id]);
+        } else {
+            // If it's a wallet deposit, create pending deposit
+            Deposit::create([
+                'user_id' => auth()->id(),
+                'wallet_id' => $wallet->id,
+                'manual_payment_id' => $manualPayment->id,
+                'amount' => $request->amount,
+                'final_amount' => $request->amount,
+                'gateway' => 'manual',
+                'reference' => $reference,
+                'status' => 'pending',
+                'description' => 'Manual payment deposit - Pending approval',
+            ]);
         }
 
         return response()->json([

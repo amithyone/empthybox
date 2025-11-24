@@ -131,7 +131,7 @@ class ManualPaymentController extends Controller
 
                 $order->update(['status' => 'delivered']);
             } else {
-                // If it's a wallet deposit, credit the wallet
+                // If it's a wallet deposit, update the deposit status and credit the wallet
                 $wallet = $manualPayment->user->wallet ?? Wallet::create([
                     'user_id' => $manualPayment->user_id,
                     'balance' => 0,
@@ -139,34 +139,27 @@ class ManualPaymentController extends Controller
                     'total_withdrawn' => 0,
                 ]);
 
-                // Check for duplicate deposit to prevent multiple entries
-                $existingDeposit = Deposit::where('reference', $manualPayment->reference)
-                    ->where('user_id', $manualPayment->user_id)
-                    ->where('status', 'completed')
+                // Find existing deposit (created when manual payment was created)
+                $deposit = Deposit::where('manual_payment_id', $manualPayment->id)
+                    ->orWhere('reference', $manualPayment->reference)
                     ->first();
 
-                if (!$existingDeposit) {
+                if ($deposit && $deposit->status === 'pending') {
+                    // Update deposit status to completed
+                    $deposit->update([
+                        'status' => 'completed',
+                        'wallet_id' => $wallet->id,
+                        'completed_at' => now(),
+                    ]);
+
                     // Increment wallet balance and total_deposited
                     $wallet->increment('balance', $manualPayment->amount);
                     $wallet->increment('total_deposited', $manualPayment->amount);
-
-                    // Create transaction
-                    $transaction = Transaction::create([
-                        'user_id' => $manualPayment->user_id,
-                        'wallet_id' => $wallet->id,
-                        'type' => 'deposit',
-                        'amount' => $manualPayment->amount,
-                        'gateway' => 'manual',
-                        'status' => 'completed',
-                        'reference' => $manualPayment->reference,
-                        'description' => 'Manual payment deposit - Approved',
-                    ]);
-
-                    // Create deposit record
+                } elseif (!$deposit) {
+                    // If deposit doesn't exist (legacy data), create it
                     Deposit::create([
                         'user_id' => $manualPayment->user_id,
                         'wallet_id' => $wallet->id,
-                        'transaction_id' => $transaction->id,
                         'manual_payment_id' => $manualPayment->id,
                         'amount' => $manualPayment->amount,
                         'final_amount' => $manualPayment->amount,
@@ -176,6 +169,9 @@ class ManualPaymentController extends Controller
                         'description' => 'Manual payment deposit - Approved',
                         'completed_at' => now(),
                     ]);
+
+                    $wallet->increment('balance', $manualPayment->amount);
+                    $wallet->increment('total_deposited', $manualPayment->amount);
                 }
             }
 
@@ -204,17 +200,40 @@ class ManualPaymentController extends Controller
             ], 400);
         }
 
-        $manualPayment->update([
-            'status' => 'rejected',
-            'approved_by' => auth()->id(),
-            'approved_at' => now(),
-            'admin_notes' => $request->admin_notes ?? 'Payment rejected by admin',
-        ]);
+        DB::beginTransaction();
+        try {
+            $manualPayment->update([
+                'status' => 'rejected',
+                'approved_by' => auth()->id(),
+                'approved_at' => now(),
+                'admin_notes' => $request->admin_notes ?? 'Payment rejected by admin',
+            ]);
 
-        return response()->json([
-            'success' => true,
-            'message' => 'Payment rejected successfully!',
-        ]);
+            // Update deposit status to failed if it exists
+            $deposit = Deposit::where('manual_payment_id', $manualPayment->id)
+                ->orWhere('reference', $manualPayment->reference)
+                ->first();
+
+            if ($deposit && $deposit->status === 'pending') {
+                $deposit->update([
+                    'status' => 'failed',
+                    'description' => 'Manual payment deposit - Rejected: ' . ($request->admin_notes ?? 'Payment rejected by admin'),
+                ]);
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Payment rejected successfully!',
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'An error occurred: ' . $e->getMessage(),
+            ], 500);
+        }
     }
 
     // Banking Details Management
