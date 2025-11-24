@@ -5,7 +5,12 @@
 @section('content')
 <div class="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 md:py-8 pb-20 md:pb-8">
     <div class="bg-dark-200 border-2 border-dark-300 rounded-xl shadow-2xl shadow-red-accent/10 p-4 md:p-6">
-        <h1 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 gradient-text">Order Details</h1>
+        <div class="flex items-center justify-between mb-4 md:mb-6">
+            <h1 class="text-2xl md:text-3xl font-bold gradient-text">Order Details</h1>
+            <a href="{{ route('products.index') }}" class="text-yellow-accent hover:text-red-accent transition flex items-center gap-2">
+                <span>← Back to Products</span>
+            </a>
+        </div>
 
         <!-- Order Info -->
         <div class="bg-dark-300 border border-dark-400 p-4 md:p-6 rounded-xl mb-6">
@@ -31,7 +36,7 @@
                 </div>
                 <div>
                     <p class="text-xs md:text-sm text-gray-400">Amount</p>
-                    <p class="font-semibold bg-gradient-to-r from-red-accent to-yellow-accent bg-clip-text text-transparent text-lg md:text-xl">${{ number_format($order->amount, 2) }}</p>
+                    <p class="font-semibold bg-gradient-to-r from-red-accent to-yellow-accent bg-clip-text text-transparent text-lg md:text-xl">₦{{ number_format($order->amount, 2) }}</p>
                 </div>
             </div>
             <p class="text-xs md:text-sm text-gray-400">Ordered on {{ $order->created_at->format('M d, Y h:i A') }}</p>
@@ -109,10 +114,6 @@
         </div>
         @endif
 
-        <!-- Back Button -->
-        <div class="mt-6">
-            <a href="{{ route('orders.index') }}" class="text-yellow-accent font-semibold hover:text-red-accent transition">← Back to Orders</a>
-        </div>
     </div>
 </div>
 
@@ -150,18 +151,44 @@ document.getElementById('pin-form')?.addEventListener('submit', async function(e
         if (data.success) {
             const display = document.getElementById('credentials-display');
             display.classList.remove('hidden');
-            display.innerHTML = `
-                <p class="font-semibold mb-3 text-gray-200">Your Credentials:</p>
-                <p class="mb-2 text-gray-300"><strong class="text-gray-400">Username:</strong> <span class="font-mono text-yellow-accent">${data.credentials.username}</span></p>
-                <p class="mb-2 text-gray-300"><strong class="text-gray-400">Password:</strong> <span class="font-mono text-yellow-accent">${data.credentials.password}</span></p>
-                ${data.credentials.email ? `<p class="mb-2 text-gray-300"><strong class="text-gray-400">Email:</strong> <span class="font-mono text-yellow-accent">${data.credentials.email}</span></p>` : ''}
-                        ${data.credentials.authenticator_code ? `<p class=\"mb-2 text-gray-300\"><strong class=\"text-gray-400\">Authenticator Code:</strong> <span class=\"font-mono text-yellow-accent\">${data.credentials.authenticator_code}</span></p>` : ''}
-                        ${data.credentials.authenticator_site ? `<p class=\"mb-2 text-gray-300\"><strong class=\"text-gray-400\">Authenticator Site:</strong> <span class=\"font-mono text-yellow-accent\">${data.credentials.authenticator_site}</span></p>` : ''}
-                <div class="mt-4 p-3 bg-yellow-accent/20 border border-yellow-accent/30 rounded-xl text-xs md:text-sm text-yellow-accent">
-                    Tips: Save credentials securely. You can return to this order to view again.
-                </div>
-            `;
-                    // Keep form visible to allow repeat reveals if needed
+            
+            // Display formatted credentials (works for both ProductDetail and ProductCredential)
+            let html = '<p class="font-semibold mb-3 text-gray-200">Your Credentials:</p>';
+            
+            if (data.credentials.username) {
+                html += `<p class="mb-2 text-gray-300"><strong class="text-gray-400">Username/Phone:</strong> <span class="font-mono text-yellow-accent">${data.credentials.username}</span></p>`;
+            }
+            if (data.credentials.password) {
+                html += `<p class="mb-2 text-gray-300"><strong class="text-gray-400">Password:</strong> <span class="font-mono text-yellow-accent">${data.credentials.password}</span></p>`;
+            }
+            if (data.credentials.authenticator_code) {
+                html += `<p class="mb-2 text-gray-300"><strong class="text-gray-400">Authenticator Code:</strong> <span class="font-mono text-yellow-accent">${data.credentials.authenticator_code}</span></p>`;
+            }
+            if (data.credentials.email) {
+                html += `<p class="mb-2 text-gray-300"><strong class="text-gray-400">Email:</strong> <span class="font-mono text-yellow-accent">${data.credentials.email}</span></p>`;
+            }
+            if (data.credentials.email_password) {
+                html += `<p class="mb-2 text-gray-300"><strong class="text-gray-400">Email Password:</strong> <span class="font-mono text-yellow-accent">${data.credentials.email_password}</span></p>`;
+            }
+            if (data.credentials.recovery_email) {
+                html += `<p class="mb-2 text-gray-300"><strong class="text-gray-400">Recovery Email:</strong> <span class="font-mono text-yellow-accent">${data.credentials.recovery_email}</span></p>`;
+            }
+            if (data.credentials.recovery_website) {
+                html += `<p class="mb-2 text-gray-300"><strong class="text-gray-400">Recovery Website:</strong> <span class="font-mono text-yellow-accent">${data.credentials.recovery_website}</span></p>`;
+            }
+            if (data.credentials.additional) {
+                html += `<p class="mb-2 text-gray-300"><strong class="text-gray-400">Additional:</strong> <span class="font-mono text-yellow-accent break-all">${data.credentials.additional}</span></p>`;
+            }
+            if (data.credentials.additional_info) {
+                html += `<p class="mb-2 text-gray-300"><strong class="text-gray-400">Additional Info:</strong> <span class="font-mono text-yellow-accent break-all">${JSON.stringify(data.credentials.additional_info)}</span></p>`;
+            }
+            
+            html += `<div class="mt-4 p-3 bg-yellow-accent/20 border border-yellow-accent/30 rounded-xl text-xs md:text-sm text-yellow-accent">
+                Tips: Save credentials securely. You can return to this order to view again.
+            </div>`;
+            
+            display.innerHTML = html;
+            // Keep form visible to allow repeat reveals if needed
             showAlert(data.message, 'success');
         } else {
             showAlert(data.message, 'error');

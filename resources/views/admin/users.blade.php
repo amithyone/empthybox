@@ -27,7 +27,7 @@
                     <tr class="border-b border-dark-300">
                         <td class="py-3 px-2 text-gray-300 text-xs md:text-sm">{{ $user->name }}</td>
                         <td class="py-3 px-2 text-gray-300 text-xs md:text-sm">{{ $user->email }}</td>
-                        <td class="py-3 px-2 text-yellow-accent font-semibold text-xs md:text-sm">${{ number_format($user->wallet->balance ?? 0, 2) }}</td>
+                        <td class="py-3 px-2 text-yellow-accent font-semibold text-xs md:text-sm">₦{{ number_format($user->wallet->balance ?? 0, 2) }}</td>
                         <td class="py-3 px-2">
                             @if($user->is_admin)
                             <span class="px-2 py-1 rounded text-xs bg-red-accent/20 text-red-accent border border-red-accent/30">Admin</span>

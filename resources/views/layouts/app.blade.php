@@ -28,8 +28,9 @@
                 
                 <div class="flex items-center gap-2 md:gap-4 text-sm md:text-base">
                     @auth
+                        <a href="{{ route('products.index') }}" class="hidden sm:inline-block px-2 md:px-3 py-1.5 rounded-md hover:bg-dark-300 transition {{ request()->routeIs('products.*') ? 'text-yellow-accent border-b border-yellow-accent' : '' }}">Products</a>
                         <a href="{{ route('wallet.index') }}" class="hidden sm:inline-block px-2 md:px-3 py-1.5 rounded-md hover:bg-dark-300 transition font-medium text-yellow-accent">
-                            💰 ${{ number_format(auth()->user()->wallet->balance ?? 0, 2) }}
+                            💰 ₦{{ number_format(auth()->user()->wallet->balance ?? 0, 2) }}
                         </a>
                         <a href="{{ route('dashboard') }}" class="px-2 md:px-3 py-1.5 rounded-md hover:bg-dark-300 transition">Dashboard</a>
                         <a href="{{ route('profile.index') }}" class="px-2 md:px-3 py-1.5 rounded-md hover:bg-dark-300 transition">Profile</a>
@@ -65,6 +66,10 @@
             <a href="{{ route('home') }}" class="flex flex-col items-center justify-center flex-1 h-full {{ request()->routeIs('home') ? 'text-yellow-accent' : 'text-gray-400' }} transition">
                 <span class="text-xl mb-0.5">🏠</span>
                 <span class="text-[10px]">Home</span>
+            </a>
+            <a href="{{ route('products.index') }}" class="flex flex-col items-center justify-center flex-1 h-full {{ request()->routeIs('products.*') ? 'text-yellow-accent' : 'text-gray-400' }} transition">
+                <span class="text-xl mb-0.5">🛍️</span>
+                <span class="text-[10px]">Products</span>
             </a>
             <a href="{{ route('dashboard') }}" class="flex flex-col items-center justify-center flex-1 h-full {{ request()->routeIs('dashboard') ? 'text-yellow-accent' : 'text-gray-400' }} transition">
                 <span class="text-xl mb-0.5">📊</span>

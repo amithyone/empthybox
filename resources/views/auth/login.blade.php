@@ -49,8 +49,11 @@
                 </div>
             </form>
             
-            <!-- Sign Up Link -->
-            <div class="mt-6 text-center">
+            <!-- Forgot Password & Sign Up Links -->
+            <div class="mt-6 space-y-3 text-center">
+                <p class="text-sm text-gray-400">
+                    <a href="{{ route('password.request') }}" class="text-yellow-accent font-semibold hover:text-red-accent transition">Forgot Password?</a>
+                </p>
                 <p class="text-sm text-gray-400">
                     Don't have an account? 
                     <a href="{{ route('register') }}" class="text-yellow-accent font-semibold hover:text-red-accent transition">Sign Up</a>

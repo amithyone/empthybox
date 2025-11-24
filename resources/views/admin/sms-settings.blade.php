@@ -10,7 +10,7 @@
     </div>
 
     <!-- Account Balance -->
-    @if(isset($balance) && $balance['success'])
+    @if(isset($balance) && ($balance['success'] ?? false) && isset($balance['balance']))
     <div class="bg-gradient-to-r from-red-accent via-yellow-accent to-red-accent rounded-xl shadow-2xl shadow-red-accent/30 p-6 md:p-8 text-white mb-6">
         <div class="flex items-center justify-between">
             <div>
@@ -100,6 +100,11 @@
                            class="w-full bg-dark-300 border-2 border-dark-400 text-gray-200 rounded-xl p-3 placeholder-gray-500 focus:border-yellow-accent focus:ring-2 focus:ring-yellow-accent/20 transition outline-none font-mono text-sm"
                            placeholder="https://api.tigersms.net">
                 </div>
+
+                <button type="button" onclick="testTigersmsConnection()" 
+                        class="w-full bg-dark-300 border-2 border-dark-400 text-gray-300 py-3 rounded-xl font-semibold transition hover:bg-dark-400 hover:border-yellow-accent/50">
+                    Test TigerSMS Connection
+                </button>
             </div>
         </div>
 
@@ -202,6 +207,41 @@ async function testConnection() {
     } finally {
         btn.disabled = false;
         btn.textContent = 'Test Connection';
+    }
+}
+
+async function testTigersmsConnection() {
+    const formData = new FormData();
+    formData.append('_token', document.querySelector('meta[name="csrf-token"]').content);
+    formData.append('test_connection', '1');
+    formData.append('sms_tigersms_api_key', document.querySelector('[name="sms_tigersms_api_key"]').value);
+    formData.append('sms_tigersms_base_url', document.querySelector('[name="sms_tigersms_base_url"]').value || '');
+    
+    const btn = event.target;
+    btn.disabled = true;
+    btn.textContent = 'Testing...';
+    
+    try {
+        const response = await fetch('{{ route("admin.sms-settings.update") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert('✅ TigerSMS Connection successful! ' + data.test_result.message, 'success');
+        } else {
+            showAlert('❌ TigerSMS Connection failed: ' + (data.message || 'Please check your API key'), 'error');
+        }
+    } catch (error) {
+        showAlert('An error occurred while testing TigerSMS connection.', 'error');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Test TigerSMS Connection';
     }
 }
 </script>

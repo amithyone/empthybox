@@ -1,0 +1,43 @@
+RewriteCond %{REQUEST_URI} !^/roundcube/
+<IfModule mod_rewrite.c>
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    <IfModule mod_negotiation.c>
+RewriteCond %{REQUEST_URI} !^/roundcube/
+        Options -MultiViews -Indexes
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    </IfModule>
+RewriteCond %{REQUEST_URI} !^/roundcube/
+
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    RewriteEngine On
+RewriteCond %{REQUEST_URI} !^/(roundcube|postfixadmin)/
+RewriteCond %{REQUEST_URI} !^/roundcube/
+
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    # Handle Authorization Header
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    RewriteCond %{HTTP:Authorization} .
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
+RewriteCond %{REQUEST_URI} !^/roundcube/
+
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    # Redirect Trailing Slashes If Not A Folder...
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    RewriteCond %{REQUEST_URI} (.+)/$
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    RewriteRule ^ %1 [L,R=301]
+RewriteCond %{REQUEST_URI} !^/roundcube/
+
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    # Send Requests To Front Controller...
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_URI} !^/roundcube/
+    RewriteRule ^ index.php [L]
+RewriteCond %{REQUEST_URI} !^/roundcube/
+</IfModule>

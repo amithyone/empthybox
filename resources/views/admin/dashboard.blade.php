@@ -8,6 +8,18 @@
 
     <!-- Quick Actions -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
+        <a href="{{ route('admin.products') }}" class="bg-dark-200 border-2 border-dark-300 p-4 md:p-6 rounded-xl shadow-lg hover:border-yellow-accent/50 transition text-center">
+            <div class="text-2xl md:text-3xl mb-2">🛍️</div>
+            <div class="font-semibold text-sm md:text-base text-gray-300">Products</div>
+        </a>
+        <a href="{{ route('admin.categories') }}" class="bg-dark-200 border-2 border-dark-300 p-4 md:p-6 rounded-xl shadow-lg hover:border-yellow-accent/50 transition text-center">
+            <div class="text-2xl md:text-3xl mb-2">📂</div>
+            <div class="font-semibold text-sm md:text-base text-gray-300">Categories</div>
+        </a>
+        <a href="{{ route('orders.index') }}" class="bg-dark-200 border-2 border-dark-300 p-4 md:p-6 rounded-xl shadow-lg hover:border-yellow-accent/50 transition text-center">
+            <div class="text-2xl md:text-3xl mb-2">📦</div>
+            <div class="font-semibold text-sm md:text-base text-gray-300">All Orders</div>
+        </a>
         <a href="{{ route('admin.users') }}" class="bg-dark-200 border-2 border-dark-300 p-4 md:p-6 rounded-xl shadow-lg hover:border-yellow-accent/50 transition text-center">
             <div class="text-2xl md:text-3xl mb-2">👥</div>
             <div class="font-semibold text-sm md:text-base text-gray-300">Users</div>
@@ -28,6 +40,50 @@
             <div class="text-2xl md:text-3xl mb-2">⚙️</div>
             <div class="font-semibold text-sm md:text-base text-gray-300">Settings</div>
         </a>
+    </div>
+
+    <!-- Sales Overview -->
+    <div class="bg-gradient-to-r from-red-accent via-yellow-accent to-red-accent rounded-xl shadow-2xl shadow-red-accent/30 p-6 md:p-8 text-white mb-6 md:mb-8">
+        <div class="flex items-center justify-between mb-6">
+            <div>
+                <h2 class="text-xl md:text-2xl font-bold">💰 Sales Overview</h2>
+                <p class="text-sm opacity-90">Revenue and deposit statistics</p>
+            </div>
+            <div class="text-4xl md:text-5xl">📊</div>
+        </div>
+        
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <p class="text-xs md:text-sm opacity-90 mb-1">Total Revenue</p>
+                <p class="text-2xl md:text-3xl font-bold">₦{{ number_format($salesStats['total_revenue'] ?? 0, 2) }}</p>
+                <p class="text-xs opacity-75 mt-1">All paid/completed orders</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <p class="text-xs md:text-sm opacity-90 mb-1">Today's Revenue</p>
+                <p class="text-2xl md:text-3xl font-bold">₦{{ number_format($salesStats['today_revenue'] ?? 0, 2) }}</p>
+                <p class="text-xs opacity-75 mt-1">Revenue today</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <p class="text-xs md:text-sm opacity-90 mb-1">This Month</p>
+                <p class="text-2xl md:text-3xl font-bold">₦{{ number_format($salesStats['this_month_revenue'] ?? 0, 2) }}</p>
+                <p class="text-xs opacity-75 mt-1">Current month revenue</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <p class="text-xs md:text-sm opacity-90 mb-1">Total Deposits</p>
+                <p class="text-2xl md:text-3xl font-bold">₦{{ number_format($salesStats['total_deposits'] ?? 0, 2) }}</p>
+                <p class="text-xs opacity-75 mt-1">All completed deposits</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <p class="text-xs md:text-sm opacity-90 mb-1">Today's Deposits</p>
+                <p class="text-2xl md:text-3xl font-bold">₦{{ number_format($salesStats['today_deposits'] ?? 0, 2) }}</p>
+                <p class="text-xs opacity-75 mt-1">Deposits today</p>
+            </div>
+            <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                <p class="text-xs md:text-sm opacity-90 mb-1">Pending Deposits</p>
+                <p class="text-2xl md:text-3xl font-bold">₦{{ number_format($salesStats['pending_deposits'] ?? 0, 2) }}</p>
+                <p class="text-xs opacity-75 mt-1">Awaiting approval</p>
+            </div>
+        </div>
     </div>
 
     <!-- Stats -->
@@ -100,7 +156,7 @@
                         <td class="py-2 text-gray-300 text-xs md:text-sm">{{ $order->order_number }}</td>
                         <td class="py-2 text-gray-300 text-xs md:text-sm">{{ $order->user->name }}</td>
                         <td class="py-2 text-gray-300 text-xs md:text-sm">{{ $order->product->name }}</td>
-                        <td class="py-2 text-yellow-accent text-xs md:text-sm font-semibold">${{ number_format($order->amount, 2) }}</td>
+                        <td class="py-2 text-yellow-accent text-xs md:text-sm font-semibold">₦{{ number_format($order->amount, 2) }}</td>
                         <td class="py-2">
                             <span class="px-2 py-1 rounded text-xs border
                                 {{ $order->status === 'completed' ? 'bg-green-600/20 text-green-400 border-green-500/30' : 'bg-yellow-accent/20 text-yellow-accent border-yellow-accent/30' }}">

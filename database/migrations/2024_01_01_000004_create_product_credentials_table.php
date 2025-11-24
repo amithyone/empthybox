@@ -16,7 +16,7 @@ return new class extends Migration
             $table->text('email')->nullable();
             $table->text('additional_info')->nullable(); // JSON for extra fields
             $table->boolean('is_sold')->default(false);
-            $table->foreignId('sold_to_order_id')->nullable()->constrained('orders')->onDelete('set null');
+            $table->unsignedBigInteger('sold_to_order_id')->nullable();
             $table->timestamps();
         });
     }

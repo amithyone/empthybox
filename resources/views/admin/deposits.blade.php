@@ -28,7 +28,7 @@
                     <tr class="border-b border-dark-300">
                         <td class="py-3 px-2 text-gray-300 text-xs md:text-sm">{{ $deposit->created_at->format('M d, Y h:i A') }}</td>
                         <td class="py-3 px-2 text-gray-300 text-xs md:text-sm">{{ $deposit->user->name }}</td>
-                        <td class="py-3 px-2 text-yellow-accent font-semibold text-xs md:text-sm">${{ number_format($deposit->amount, 2) }}</td>
+                        <td class="py-3 px-2 text-yellow-accent font-semibold text-xs md:text-sm">₦{{ number_format($deposit->amount, 2) }}</td>
                         <td class="py-3 px-2 text-gray-400 text-xs md:text-sm">{{ ucfirst($deposit->gateway ?? 'N/A') }}</td>
                         <td class="py-3 px-2">
                             <span class="px-2 py-1 rounded text-xs border

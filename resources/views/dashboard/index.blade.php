@@ -6,6 +6,25 @@
 <div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 md:py-8 pb-20 md:pb-8">
     <h1 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 gradient-text">Welcome back, {{ $user->name }}! 👋</h1>
 
+    <!-- PIN Setup Alert -->
+    @if(empty($user->pin_hash))
+    <div class="bg-gradient-to-r from-yellow-accent/20 via-red-accent/10 to-yellow-accent/20 border-2 border-yellow-accent rounded-xl shadow-lg p-4 md:p-6 mb-6 md:mb-8">
+        <div class="flex flex-col md:flex-row items-start md:items-center md:justify-between gap-4">
+            <div class="flex-1">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-3xl">🔒</span>
+                    <h3 class="text-lg md:text-xl font-bold text-yellow-accent">Setup Your PIN</h3>
+                </div>
+                <p class="text-sm md:text-base text-gray-300">You need to set up a 4-6 digit PIN to securely view your order credentials. This is a one-time setup.</p>
+            </div>
+            <button onclick="document.getElementById('pin-setup-modal').classList.remove('hidden');" 
+                    class="bg-gradient-to-r from-red-accent to-yellow-accent hover:from-red-dark hover:to-yellow-dark text-white px-6 py-3 rounded-xl font-semibold transition glow-button relative shadow-lg shadow-red-accent/30 whitespace-nowrap">
+                <span class="relative z-10">Setup PIN →</span>
+            </button>
+        </div>
+    </div>
+    @endif
+
     <!-- Stats Cards -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4 mb-6 md:mb-8">
         <div class="bg-dark-200 border-2 border-dark-300 p-4 md:p-6 rounded-xl shadow-lg hover:border-yellow-accent/50 transition">
@@ -13,7 +32,7 @@
             <div class="text-xs md:text-sm text-gray-400 mt-1">Total Orders</div>
         </div>
         <div class="bg-dark-200 border-2 border-dark-300 p-4 md:p-6 rounded-xl shadow-lg hover:border-yellow-accent/50 transition">
-            <div class="text-xl md:text-2xl font-bold text-green-400">${{ number_format($stats['wallet_balance'], 2) }}</div>
+            <div class="text-xl md:text-2xl font-bold text-green-400">₦{{ number_format($stats['wallet_balance'], 2) }}</div>
             <div class="text-xs md:text-sm text-gray-400 mt-1">Wallet Balance</div>
         </div>
         <div class="bg-dark-200 border-2 border-dark-300 p-4 md:p-6 rounded-xl shadow-lg hover:border-yellow-accent/50 transition">
@@ -120,6 +139,83 @@
         @endif
     </div>
 </div>
+
+<!-- PIN Setup Modal -->
+@if(empty($user->pin_hash))
+<div id="pin-setup-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 items-center justify-center px-4">
+    <div class="bg-dark-200 border-2 border-yellow-accent rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8">
+        <div class="text-center mb-6">
+            <div class="text-5xl mb-3">🔒</div>
+            <h2 class="text-2xl font-bold text-gray-200 mb-2">Setup Your PIN</h2>
+            <p class="text-gray-400 text-sm">This PIN will be used to view your order credentials securely</p>
+        </div>
+        
+        <form id="pin-setup-form" class="space-y-5">
+            @csrf
+            <div>
+                <label class="block text-sm font-medium mb-2 text-gray-300">4-6 Digit PIN</label>
+                <input type="text" name="pin" required maxlength="6" pattern="[0-9]{4,6}"
+                       class="w-full bg-dark-300 border-2 border-yellow-accent/50 rounded-xl p-4 text-gray-200 placeholder-gray-500 focus:border-yellow-accent focus:ring-2 focus:ring-yellow-accent/20 transition outline-none text-center text-2xl tracking-widest"
+                       placeholder="0000">
+                <p class="text-xs text-gray-500 mt-1">Choose a PIN between 4-6 digits</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2 text-gray-300">Confirm PIN</label>
+                <input type="text" name="pin_confirmation" required maxlength="6" pattern="[0-9]{4,6}"
+                       class="w-full bg-dark-300 border-2 border-yellow-accent/50 rounded-xl p-4 text-gray-200 placeholder-gray-500 focus:border-yellow-accent focus:ring-2 focus:ring-yellow-accent/20 transition outline-none text-center text-2xl tracking-widest"
+                       placeholder="0000">
+            </div>
+            <button type="submit" 
+                    class="w-full bg-gradient-to-r from-red-accent to-yellow-accent hover:from-red-dark hover:to-yellow-dark text-white py-4 rounded-xl font-semibold transition-all glow-button relative shadow-lg shadow-red-accent/40">
+                <span class="relative z-10">Set PIN</span>
+            </button>
+        </form>
+        
+        <p class="text-xs text-gray-500 text-center mt-4">
+            <span class="text-yellow-accent">⚠️ Remember this PIN!</span> You'll need it every time you view credentials.
+        </p>
+    </div>
+</div>
+
+@section('scripts')
+<script>
+document.getElementById('pin-setup-form')?.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const btn = this.querySelector('button[type="submit"]');
+    const btnText = btn.querySelector('span');
+    btn.disabled = true;
+    btnText.textContent = 'Setting...';
+
+    try {
+        const response = await fetch('{{ route("setup-pin") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(data.message, 'success');
+            setTimeout(() => {
+                location.reload();
+            }, 1000);
+        } else {
+            showAlert(data.message || 'Validation errors occurred', 'error');
+            btn.disabled = false;
+            btnText.textContent = 'Set PIN';
+        }
+    } catch (error) {
+        showAlert('An error occurred. Please try again.', 'error');
+        btn.disabled = false;
+        btnText.textContent = 'Set PIN';
+    }
+});
+</script>
 @endsection
+@endif
 
 

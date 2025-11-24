@@ -13,6 +13,7 @@ class Order extends Model
         'user_id',
         'product_id',
         'credential_id',
+        'product_detail_id',
         'order_number',
         'amount',
         'status',
@@ -54,6 +55,11 @@ class Order extends Model
         return $this->belongsTo(ProductCredential::class);
     }
 
+    public function productDetail()
+    {
+        return $this->belongsTo(ProductDetail::class);
+    }
+
     public function transaction()
     {
         return $this->belongsTo(Transaction::class);
@@ -68,10 +74,9 @@ class Order extends Model
     {
         return $this->hasMany(Ticket::class);
     }
+
+    public function manualPayment()
+    {
+        return $this->hasOne(ManualPayment::class);
+    }
 }
-
-
-
-
-
-

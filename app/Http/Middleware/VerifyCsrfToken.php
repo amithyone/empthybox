@@ -11,6 +11,7 @@ class VerifyCsrfToken extends Middleware
         'paystack/webhook',
         'stripe/webhook',
         'razorpay/webhook',
+        'webhook/payvibe',
     ];
 }
 

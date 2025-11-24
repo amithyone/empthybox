@@ -6,10 +6,13 @@ use App\Models\Order;
 use App\Models\OrderPin;
 use App\Models\Product;
 use App\Models\ProductCredential;
+use App\Models\ProductDetail;
 use App\Models\Transaction;
 use App\Models\Wallet;
+use App\Mail\OrderConfirmation;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
 
 class OrderController extends Controller
 {
@@ -18,12 +21,37 @@ class OrderController extends Controller
         $this->middleware('auth');
     }
 
-    public function index()
+    public function index(Request $request)
     {
-        $orders = auth()->user()->orders()
-            ->with(['product', 'credential', 'pin'])
-            ->latest()
-            ->paginate(15);
+        // Admin can see all orders and search/filter
+        if (auth()->user()->is_admin) {
+            $query = Order::with(['user', 'product', 'credential', 'productDetail', 'pin']);
+            
+            // Search by user email
+            if ($request->filled('email')) {
+                $query->whereHas('user', function($q) use ($request) {
+                    $q->where('email', 'like', '%' . $request->email . '%');
+                });
+            }
+            
+            // Filter by status
+            if ($request->filled('status')) {
+                $query->where('status', $request->status);
+            }
+            
+            // Search by order number
+            if ($request->filled('order_number')) {
+                $query->where('order_number', 'like', '%' . $request->order_number . '%');
+            }
+            
+            $orders = $query->latest()->paginate(20);
+        } else {
+            // Regular users only see their own orders
+            $orders = auth()->user()->orders()
+                ->with(['product', 'credential', 'productDetail', 'pin'])
+                ->latest()
+                ->paginate(15);
+        }
 
         return view('orders.index', compact('orders'));
     }
@@ -31,7 +59,7 @@ class OrderController extends Controller
     public function store(Request $request, Product $product)
     {
         $request->validate([
-            'payment_method' => 'required|in:wallet,paystack,stripe,razorpay,payvibe,btcpay,coingate',
+            'payment_method' => 'required|in:wallet,paystack,stripe,razorpay,payvibe,btcpay,coingate,manual',
         ]);
 
         if (!$product->is_active || $product->available_stock < 1) {
@@ -43,18 +71,50 @@ class OrderController extends Controller
 
         DB::beginTransaction();
         try {
-            // Lock available credential
-            $credential = ProductCredential::where('product_id', $product->id)
+            // Lock first unsold ProductDetail (TXT-based inventory)
+            $productDetail = ProductDetail::where('product_id', $product->id)
                 ->where('is_sold', false)
                 ->lockForUpdate()
                 ->first();
 
-            if (!$credential) {
-                throw new \Exception('No available credentials for this product.');
+            if (!$productDetail) {
+                // Fallback to old ProductCredential system
+                $credential = ProductCredential::where('product_id', $product->id)
+                    ->where('is_sold', false)
+                    ->lockForUpdate()
+                    ->first();
+
+                if (!$credential) {
+                    throw new \Exception('No available stock for this product.');
+                }
+            } else {
+                $credential = null; // Using ProductDetail
             }
 
             // Handle payment based on method
             $transaction = null;
+            // Handle manual payment
+            if ($request->payment_method === 'manual') {
+                // Create pending order for manual payment
+                $order = Order::create([
+                    'user_id' => auth()->id(),
+                    'product_id' => $product->id,
+                    'credential_id' => $credential ? $credential->id : null,
+                    'product_detail_id' => $productDetail ? $productDetail->id : null,
+                    'amount' => $product->price,
+                    'status' => 'pending',
+                    'payment_method' => 'manual',
+                ]);
+
+                DB::commit();
+
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Order created. Please proceed with manual payment.',
+                    'redirect' => route('manual-payment.form', ['order_id' => $order->id, 'amount' => $product->price]),
+                ]);
+            }
+
             if ($request->payment_method === 'wallet') {
                 $wallet = auth()->user()->wallet;
                 if (!$wallet || $wallet->balance < $product->price) {
@@ -92,18 +152,23 @@ class OrderController extends Controller
             $order = Order::create([
                 'user_id' => auth()->id(),
                 'product_id' => $product->id,
-                'credential_id' => $credential->id,
+                'credential_id' => $credential ? $credential->id : null,
+                'product_detail_id' => $productDetail ? $productDetail->id : null,
                 'amount' => $product->price,
                 'status' => $request->payment_method === 'wallet' ? 'paid' : 'pending',
                 'payment_method' => $request->payment_method,
                 'transaction_id' => $transaction->id,
             ]);
 
-            // Mark credential as sold
-            $credential->update([
-                'is_sold' => true,
-                'sold_to_order_id' => $order->id,
-            ]);
+            // Mark as sold (ProductDetail or ProductCredential)
+            if ($productDetail) {
+                $productDetail->update(['is_sold' => true]);
+            } else {
+                $credential->update([
+                    'is_sold' => true,
+                    'sold_to_order_id' => $order->id,
+                ]);
+            }
 
             // Generate PIN for order
             $pin = OrderPin::generatePin();
@@ -119,9 +184,17 @@ class OrderController extends Controller
 
             DB::commit();
 
+            // Send confirmation email
+            try {
+                Mail::to(auth()->user()->email)->send(new OrderConfirmation($order));
+            } catch (\Exception $e) {
+                // Log error but don't fail order
+                \Log::error('Failed to send order confirmation email: ' . $e->getMessage());
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => 'Order placed successfully!',
+                'message' => 'Order placed successfully! A confirmation email has been sent to your inbox.',
                 'order_id' => $order->id,
                 'redirect' => route('orders.show', $order),
             ]);
@@ -141,7 +214,7 @@ class OrderController extends Controller
             abort(403);
         }
 
-        $order->load(['product', 'credential', 'pin', 'transaction']);
+        $order->load(['product', 'credential', 'productDetail', 'pin', 'transaction']);
 
         return view('orders.show', compact('order'));
     }
@@ -191,19 +264,29 @@ class OrderController extends Controller
             $order->update(['status' => 'completed']);
         }
 
-        // Load credential with decrypted data
-        $order->load('credential');
+        // Load credential details
+        $order->load(['credential', 'productDetail']);
 
+        // If using new ProductDetail system, return formatted credentials
+        if ($order->productDetail) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Product details revealed successfully!',
+                'credentials' => $order->productDetail->formatted_credentials,
+            ]);
+        }
+
+        // Otherwise return ProductCredential fields
         return response()->json([
             'success' => true,
             'message' => 'Credentials revealed successfully!',
             'credentials' => [
-                'username' => $order->credential->username,
-                'password' => $order->credential->password,
-                'email' => $order->credential->email,
-                'authenticator_code' => $order->credential->authenticator_code,
-                'authenticator_site' => $order->credential->authenticator_site,
-                'additional_info' => $order->credential->additional_info,
+                'username' => $order->credential->username ?? null,
+                'password' => $order->credential->password ?? null,
+                'email' => $order->credential->email ?? null,
+                'authenticator_code' => $order->credential->authenticator_code ?? null,
+                'authenticator_site' => $order->credential->authenticator_site ?? null,
+                'additional_info' => $order->credential->additional_info ?? null,
             ],
         ]);
     }

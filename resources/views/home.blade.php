@@ -114,7 +114,7 @@
                     </div>
                     <p class="text-gray-400 text-xs md:text-sm mb-4 line-clamp-2">{{ \Illuminate\Support\Str::limit($product->description, 100) }}</p>
                     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-3">
-                        <span class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-accent to-yellow-accent bg-clip-text text-transparent drop-shadow-lg">${{ number_format($product->price, 2) }}</span>
+                        <span class="text-2xl md:text-3xl font-bold bg-gradient-to-r from-red-accent to-yellow-accent bg-clip-text text-transparent drop-shadow-lg">₦{{ number_format($product->price, 2) }}</span>
                         <a href="{{ route('products.show', $product) }}" 
                            class="bg-gradient-to-r from-red-accent to-yellow-accent hover:from-red-dark hover:to-yellow-dark text-white px-4 py-2 rounded-lg font-medium transition text-center text-sm md:text-base glow-button relative shadow-lg shadow-red-accent/40 hover:shadow-xl hover:shadow-yellow-accent/50">
                             View Details

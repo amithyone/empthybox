@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('product_id')->constrained()->onDelete('cascade');
-            $table->foreignId('credential_id')->nullable()->constrained('product_credentials')->onDelete('set null');
+            $table->unsignedBigInteger('credential_id')->nullable();
             $table->string('order_number')->unique();
             $table->decimal('amount', 10, 2);
             $table->string('status')->default('pending'); // pending, paid, delivered, completed, replaced, refunded
@@ -21,6 +21,11 @@ return new class extends Migration
             $table->boolean('has_replacement_request')->default(false);
             $table->boolean('is_replaced')->default(false);
             $table->timestamps();
+        });
+        
+        // Add foreign key constraint after product_credentials table exists
+        Schema::table('orders', function (Blueprint $table) {
+            $table->foreign('credential_id')->references('id')->on('product_credentials')->onDelete('set null');
         });
     }
 

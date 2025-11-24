@@ -4,20 +4,25 @@
 
 @section('content')
 <div class="max-w-4xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 md:py-8 pb-20 md:pb-8">
-    <h1 class="text-2xl md:text-3xl font-bold mb-4 md:mb-6 gradient-text">My Wallet 💰</h1>
+    <div class="flex items-center justify-between mb-4 md:mb-6">
+        <h1 class="text-2xl md:text-3xl font-bold gradient-text">My Wallet 💰</h1>
+        <a href="{{ route('dashboard') }}" class="text-yellow-accent hover:text-red-accent transition flex items-center gap-2">
+            <span>← Back</span>
+        </a>
+    </div>
 
     <!-- Wallet Balance Card -->
     <div class="bg-gradient-to-r from-red-accent via-yellow-accent to-red-accent rounded-xl shadow-2xl shadow-red-accent/30 p-6 md:p-8 text-white mb-6 md:mb-8">
         <p class="text-sm md:text-base mb-2 opacity-90">Available Balance</p>
-        <p class="text-4xl md:text-5xl font-bold mb-4">${{ number_format($wallet->balance ?? 0, 2) }}</p>
+        <p class="text-4xl md:text-5xl font-bold mb-4">₦{{ number_format($wallet->balance ?? 0, 2) }}</p>
         <div class="grid grid-cols-2 gap-4 text-xs md:text-sm">
             <div>
                 <p class="opacity-80">Total Deposited</p>
-                <p class="text-lg md:text-xl font-semibold">${{ number_format($wallet->total_deposited ?? 0, 2) }}</p>
+                <p class="text-lg md:text-xl font-semibold">₦{{ number_format($wallet->total_deposited ?? 0, 2) }}</p>
             </div>
             <div>
                 <p class="opacity-80">Total Withdrawn</p>
-                <p class="text-lg md:text-xl font-semibold">${{ number_format($wallet->total_withdrawn ?? 0, 2) }}</p>
+                <p class="text-lg md:text-xl font-semibold">₦{{ number_format($wallet->total_withdrawn ?? 0, 2) }}</p>
             </div>
         </div>
     </div>
@@ -42,6 +47,7 @@
                     <option value="payvibe" class="bg-dark-300">PayVibe</option>
                     <option value="btcpay" class="bg-dark-300">BTCPay Server</option>
                     <option value="coingate" class="bg-dark-300">CoinGate</option>
+                    <option value="manual" class="bg-dark-300">Manual Payment (Bank Transfer)</option>
                 </select>
             </div>
             <button type="submit" 
@@ -68,7 +74,7 @@
                     </div>
                     <div class="text-left sm:text-right">
                         <p class="font-bold text-lg {{ $transaction->type === 'deposit' || $transaction->type === 'refund' ? 'text-green-400' : 'text-red-accent' }}">
-                            {{ $transaction->type === 'deposit' || $transaction->type === 'refund' ? '+' : '-' }}${{ number_format($transaction->amount, 2) }}
+                            {{ $transaction->type === 'deposit' || $transaction->type === 'refund' ? '+' : '-' }}₦{{ number_format($transaction->amount, 2) }}
                         </p>
                         <span class="text-xs px-2 py-1 rounded 
                             {{ $transaction->status === 'completed' ? 'bg-green-600/20 text-green-400 border border-green-500/30' : 'bg-yellow-accent/20 text-yellow-accent border border-yellow-accent/30' }}">
@@ -112,9 +118,17 @@ document.getElementById('deposit-form')?.addEventListener('submit', async functi
         const data = await response.json();
         
         if (data.success) {
-            showAlert(data.message, 'success');
-            // In production, redirect to payment gateway
-            // window.location.href = data.redirect_url;
+            // showAlert(data.message, 'success');
+            // Redirect to payment gateway
+            
+            // Handle manual payment redirect
+            if (data.redirect) {
+                window.location.href = data.redirect;
+                return;
+            }
+            if (data.redirect_url) {
+                window.location.href = data.redirect_url;
+            }
         } else {
             showAlert(data.message, 'error');
             btn.disabled = false;

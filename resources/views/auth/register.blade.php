@@ -75,6 +75,42 @@
     </div>
 </div>
 
+<!-- PIN Setup Modal -->
+<div id="pin-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center px-4">
+    <div class="bg-dark-200 border-2 border-yellow-accent rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8">
+        <div class="text-center mb-6">
+            <div class="text-5xl mb-3">🔒</div>
+            <h2 class="text-2xl font-bold text-gray-200 mb-2">Setup Your PIN</h2>
+            <p class="text-gray-400 text-sm">This PIN will be used to view your order credentials securely</p>
+        </div>
+        
+        <form id="pin-setup-form" class="space-y-5">
+            @csrf
+            <div>
+                <label class="block text-sm font-medium mb-2 text-gray-300">4-6 Digit PIN</label>
+                <input type="text" name="pin" required maxlength="6" pattern="[0-9]{4,6}"
+                       class="w-full bg-dark-300 border-2 border-yellow-accent/50 rounded-xl p-4 text-gray-200 placeholder-gray-500 focus:border-yellow-accent focus:ring-2 focus:ring-yellow-accent/20 transition outline-none text-center text-2xl tracking-widest"
+                       placeholder="0000">
+                <p class="text-xs text-gray-500 mt-1">Choose a PIN between 4-6 digits</p>
+            </div>
+            <div>
+                <label class="block text-sm font-medium mb-2 text-gray-300">Confirm PIN</label>
+                <input type="text" name="pin_confirmation" required maxlength="6" pattern="[0-9]{4,6}"
+                       class="w-full bg-dark-300 border-2 border-yellow-accent/50 rounded-xl p-4 text-gray-200 placeholder-gray-500 focus:border-yellow-accent focus:ring-2 focus:ring-yellow-accent/20 transition outline-none text-center text-2xl tracking-widest"
+                       placeholder="0000">
+            </div>
+            <button type="submit" 
+                    class="w-full bg-gradient-to-r from-red-accent to-yellow-accent hover:from-red-dark hover:to-yellow-dark text-white py-4 rounded-xl font-semibold transition-all glow-button relative shadow-lg shadow-red-accent/40">
+                <span class="relative z-10">Set PIN</span>
+            </button>
+        </form>
+        
+        <p class="text-xs text-gray-500 text-center mt-4">
+            <span class="text-yellow-accent">⚠️ Remember this PIN!</span> You'll need it every time you view credentials.
+        </p>
+    </div>
+</div>
+
 @section('scripts')
 <script>
 document.getElementById('register-form').addEventListener('submit', async function(e) {
@@ -97,9 +133,9 @@ document.getElementById('register-form').addEventListener('submit', async functi
         
         if (data.success) {
             showAlert(data.message, 'success');
-            setTimeout(() => {
-                window.location.href = data.redirect;
-            }, 1000);
+            // Show PIN setup modal
+            document.getElementById('pin-modal').classList.remove('hidden');
+            document.getElementById('pin-modal').classList.add('flex');
         } else {
             let errorMsg = data.message || 'Validation errors occurred';
             if (data.errors) {
@@ -113,6 +149,42 @@ document.getElementById('register-form').addEventListener('submit', async functi
         showAlert('An error occurred. Please try again.', 'error');
         btn.disabled = false;
         btn.textContent = 'Create Account';
+    }
+});
+
+document.getElementById('pin-setup-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const formData = new FormData(this);
+    const btn = this.querySelector('button[type="submit"]');
+    const btnText = btn.querySelector('span');
+    btn.disabled = true;
+    btnText.textContent = 'Setting PIN...';
+
+    try {
+        const response = await fetch('{{ route("setup-pin") }}', {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            showAlert(data.message, 'success');
+            setTimeout(() => {
+                window.location.href = '{{ route("dashboard") }}';
+            }, 1000);
+        } else {
+            showAlert(data.message || 'Validation errors occurred', 'error');
+            btn.disabled = false;
+            btnText.textContent = 'Set PIN';
+        }
+    } catch (error) {
+        showAlert('An error occurred. Please try again.', 'error');
+        btn.disabled = false;
+        btnText.textContent = 'Set PIN';
     }
 });
 </script>

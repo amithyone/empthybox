@@ -22,6 +22,7 @@ class Product extends Model
         'preview_info',
         'account_type',
         'region',
+        'flag',
         'is_verified',
         'is_active',
         'featured_image',
@@ -59,9 +60,19 @@ class Product extends Model
         return 'slug';
     }
 
+    public function details()
+    {
+        return $this->hasMany(ProductDetail::class);
+    }
+
     public function getAvailableStockAttribute()
     {
-        return $this->credentials()->where('is_sold', false)->count();
+        // Count unsold details as stock if present
+        try {
+            return $this->details()->where('is_sold', false)->count();
+        } catch (\Throwable $e) {
+            return $this->attributes['available_stock'] ?? 0;
+        }
     }
 }
 
