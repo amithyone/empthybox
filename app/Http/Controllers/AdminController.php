@@ -309,7 +309,7 @@ class AdminController extends Controller
     // Deposit Management
     public function deposits()
     {
-        $deposits = \App\Models\Deposit::with(['user', 'wallet'])
+        $deposits = \App\Models\Deposit::with(['user', 'wallet', 'manualPayment'])
             ->latest()
             ->paginate(20);
 
