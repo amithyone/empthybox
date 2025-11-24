@@ -383,6 +383,18 @@ class AdminController extends Controller
         return view('admin.users', compact('users'));
     }
 
+    public function showUser(User $user)
+    {
+        $user->load(['wallet', 'orders', 'deposits', 'transactions']);
+        
+        // Get recent activity
+        $recentDeposits = $user->deposits()->latest()->limit(10)->get();
+        $recentOrders = $user->orders()->latest()->limit(10)->get();
+        $recentTransactions = $user->transactions()->latest()->limit(10)->get();
+        
+        return view('admin.user-show', compact('user', 'recentDeposits', 'recentOrders', 'recentTransactions'));
+    }
+
     public function updateUser(Request $request, User $user)
     {
         $request->validate([

@@ -116,6 +116,7 @@ Route::middleware('auth')->group(function () {
         
         // User Management
         Route::get('/users', [AdminController::class, 'users'])->name('users');
+        Route::get('/users/{user}', [AdminController::class, 'showUser'])->name('users.show');
         Route::post('/users/{user}/update', [AdminController::class, 'updateUser'])->name('users.update');
         
         // Bulk Upload

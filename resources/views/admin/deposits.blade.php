@@ -32,7 +32,12 @@ use Illuminate\Support\Facades\Storage;
                     @foreach($deposits as $deposit)
                     <tr class="border-b border-dark-300">
                         <td class="py-3 px-2 text-gray-300 text-xs md:text-sm">{{ $deposit->created_at->format('M d, Y h:i A') }}</td>
-                        <td class="py-3 px-2 text-gray-300 text-xs md:text-sm">{{ $deposit->user->name }}</td>
+                        <td class="py-3 px-2">
+                            <a href="{{ route('admin.users.show', $deposit->user) }}" 
+                               class="text-yellow-accent hover:text-red-accent transition text-xs md:text-sm font-medium underline">
+                                {{ $deposit->user->name }}
+                            </a>
+                        </td>
                         <td class="py-3 px-2 text-yellow-accent font-semibold text-xs md:text-sm">₦{{ number_format($deposit->amount, 2) }}</td>
                         <td class="py-3 px-2 text-gray-400 text-xs md:text-sm">{{ ucfirst($deposit->gateway ?? 'N/A') }}</td>
                         <td class="py-3 px-2">
