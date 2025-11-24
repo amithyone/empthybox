@@ -55,8 +55,10 @@
     </nav>
 
     <!-- Main Content -->
-    <main class="min-h-screen pb-20 md:pb-24 pt-14 md:pt-16">
-        @yield('content')
+    <main class="min-h-screen pb-20 md:pb-24">
+        <div class="pt-16 md:pt-20">
+            @yield('content')
+        </div>
     </main>
 
     <!-- Bottom Navigation (Mobile) -->
