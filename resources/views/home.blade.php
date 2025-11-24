@@ -3,7 +3,7 @@
 @section('title', 'BiggestLogs - Premium Digital Marketplace')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 md:py-8 pb-20 md:pb-8">
+<div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-20 md:pt-24 pb-20 md:pb-8">
     <!-- Hero Section -->
     <div class="bg-gradient-to-r from-red-accent/20 via-yellow-accent/10 to-red-dark/20 border border-red-accent/30 rounded-xl md:rounded-2xl p-6 md:p-8 mb-6 md:mb-8 text-center backdrop-blur-sm shadow-xl shadow-red-accent/10">
         <h1 class="text-3xl md:text-4xl lg:text-5xl font-bold mb-3 md:mb-4 gradient-text">🔥 BiggestLogs</h1>

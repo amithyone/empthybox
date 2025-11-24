@@ -3,7 +3,7 @@
 @section('title', 'Register - BiggestLogs')
 
 @section('content')
-<div class="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 py-8 pb-20 md:pb-8">
+<div class="min-h-[calc(100vh-200px)] flex items-center justify-center px-4 pt-20 md:pt-24 pb-20 md:pb-8">
     <div class="w-full max-w-md">
         <!-- Logo/Header -->
         <div class="text-center mb-8">

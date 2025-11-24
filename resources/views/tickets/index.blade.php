@@ -3,7 +3,7 @@
 @section('title', 'Support Tickets - BiggestLogs')
 
 @section('content')
-<div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-6 md:py-8 pb-20 md:pb-8">
+<div class="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 pt-20 md:pt-24 pb-20 md:pb-8">
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div class="flex items-center gap-4">
             <h1 class="text-2xl md:text-3xl font-bold gradient-text">Support Tickets</h1>
