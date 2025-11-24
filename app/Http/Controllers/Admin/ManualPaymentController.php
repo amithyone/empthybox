@@ -140,38 +140,53 @@ class ManualPaymentController extends Controller
                 ]);
 
                 // Find existing deposit (created when manual payment was created)
+                // Prioritize finding by manual_payment_id, then by reference
                 $deposit = Deposit::where('manual_payment_id', $manualPayment->id)
-                    ->orWhere('reference', $manualPayment->reference)
+                    ->orWhere(function($query) use ($manualPayment) {
+                        $query->where('reference', $manualPayment->reference)
+                              ->where('user_id', $manualPayment->user_id);
+                    })
                     ->first();
 
-                if ($deposit && $deposit->status === 'pending') {
-                    // Update deposit status to completed
-                    $deposit->update([
-                        'status' => 'completed',
-                        'wallet_id' => $wallet->id,
-                        'completed_at' => now(),
-                    ]);
+                // Check if wallet was already credited for this manual payment
+                // We check if there's a completed deposit with this reference that has a completed_at timestamp
+                $alreadyCredited = $deposit && 
+                                   $deposit->status === 'completed' && 
+                                   $deposit->completed_at !== null;
 
-                    // Increment wallet balance and total_deposited
+                if ($alreadyCredited) {
+                    // Deposit already processed - don't credit again
+                    // This prevents double-crediting if approval is clicked multiple times
+                } else {
+                    // Credit the wallet
                     $wallet->increment('balance', $manualPayment->amount);
                     $wallet->increment('total_deposited', $manualPayment->amount);
-                } elseif (!$deposit) {
-                    // If deposit doesn't exist (legacy data), create it
-                    Deposit::create([
-                        'user_id' => $manualPayment->user_id,
-                        'wallet_id' => $wallet->id,
-                        'manual_payment_id' => $manualPayment->id,
-                        'amount' => $manualPayment->amount,
-                        'final_amount' => $manualPayment->amount,
-                        'gateway' => 'manual',
-                        'reference' => $manualPayment->reference,
-                        'status' => 'completed',
-                        'description' => 'Manual payment deposit - Approved',
-                        'completed_at' => now(),
-                    ]);
 
-                    $wallet->increment('balance', $manualPayment->amount);
-                    $wallet->increment('total_deposited', $manualPayment->amount);
+                    if ($deposit) {
+                        // Update existing deposit to completed
+                        $deposit->update([
+                            'status' => 'completed',
+                            'wallet_id' => $wallet->id,
+                            'completed_at' => now(),
+                            'description' => $deposit->status === 'failed' 
+                                ? 'Manual payment deposit - Approved (previously failed)' 
+                                : 'Manual payment deposit - Approved',
+                        ]);
+                    } else {
+                        // Create new deposit (legacy data or edge case)
+                        Deposit::create([
+                            'user_id' => $manualPayment->user_id,
+                            'wallet_id' => $wallet->id,
+                            'manual_payment_id' => $manualPayment->id,
+                            'amount' => $manualPayment->amount,
+                            'final_amount' => $manualPayment->amount,
+                            'gateway' => 'manual',
+                            'reference' => $manualPayment->reference,
+                            'status' => 'completed',
+                            'description' => 'Manual payment deposit - Approved',
+                            'completed_at' => now(),
+                        ]);
+                    }
                 }
             }
 
