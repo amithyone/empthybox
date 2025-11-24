@@ -3,6 +3,7 @@
 namespace App\Mail;
 
 use App\Models\Transaction;
+use App\Models\Deposit;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -13,17 +14,29 @@ class DepositReceipt extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public Transaction $transaction;
+    public $transaction;
 
-    public function __construct(Transaction $transaction)
+    public function __construct(Transaction|Deposit $transactionOrDeposit)
     {
-        $this->transaction = $transaction;
+        if ($transactionOrDeposit instanceof Deposit) {
+            // Create a compatible object for the email template
+            // The template expects $transaction with user, reference, amount, updated_at
+            $this->transaction = (object) [
+                'user' => $transactionOrDeposit->user,
+                'reference' => $transactionOrDeposit->reference,
+                'amount' => $transactionOrDeposit->amount,
+                'updated_at' => $transactionOrDeposit->completed_at ?? $transactionOrDeposit->updated_at,
+            ];
+        } else {
+            $this->transaction = $transactionOrDeposit;
+        }
     }
 
     public function envelope(): Envelope
     {
+        $reference = $this->deposit ? $this->deposit->reference : $this->transaction->reference;
         return new Envelope(
-            subject: 'Deposit Successful - #' . $this->transaction->reference,
+            subject: 'Deposit Successful - #' . $reference,
         );
     }
 
