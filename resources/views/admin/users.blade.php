@@ -25,7 +25,12 @@
                 <tbody>
                     @foreach($users as $user)
                     <tr class="border-b border-dark-300">
-                        <td class="py-3 px-2 text-gray-300 text-xs md:text-sm">{{ $user->name }}</td>
+                        <td class="py-3 px-2">
+                            <a href="{{ route('admin.users.show', $user) }}" 
+                               class="text-yellow-accent hover:text-red-accent transition text-xs md:text-sm font-medium underline">
+                                {{ $user->name }}
+                            </a>
+                        </td>
                         <td class="py-3 px-2 text-gray-300 text-xs md:text-sm">{{ $user->email }}</td>
                         <td class="py-3 px-2 text-yellow-accent font-semibold text-xs md:text-sm">₦{{ number_format($user->wallet->balance ?? 0, 2) }}</td>
                         <td class="py-3 px-2">
