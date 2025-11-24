@@ -318,42 +318,49 @@ class AdminController extends Controller
 
     public function approveDeposit(\App\Models\Deposit $deposit)
     {
-        if ($deposit->status !== 'pending') {
+        // Only reject if deposit is already completed
+        // Allow pending and failed deposits to be approved
+        if ($deposit->status === 'completed' && $deposit->completed_at !== null) {
             return response()->json([
                 'success' => false,
                 'message' => 'This deposit has already been processed.',
             ], 400);
         }
 
-        DB::transaction(function () use ($deposit) {
-            $deposit->update([
-                'status' => 'completed',
-                'completed_at' => now(),
-            ]);
-            
-            $wallet = $deposit->wallet ?? \App\Models\Wallet::create([
-                'user_id' => $deposit->user_id,
+        // Check if wallet was already credited (prevent double-crediting)
+        $wallet = $deposit->wallet ?? \App\Models\Wallet::firstOrCreate(
+            ['user_id' => $deposit->user_id],
+            [
                 'balance' => 0,
                 'total_deposited' => 0,
                 'total_withdrawn' => 0,
-            ]);
-            
-            $wallet->increment('balance', $deposit->amount);
-            $wallet->increment('total_deposited', $deposit->amount);
-            
-            // Update deposit with wallet_id if it wasn't set
-            if (!$deposit->wallet_id) {
-                $deposit->update(['wallet_id' => $wallet->id]);
-            }
-            
-            // Update linked transaction if exists
-            if ($deposit->transaction_id) {
-                $transaction = \App\Models\Transaction::find($deposit->transaction_id);
-                if ($transaction) {
-                    $transaction->update(['status' => 'completed']);
+            ]
+        );
+
+        // Only credit if deposit is not already completed
+        if ($deposit->status !== 'completed' || $deposit->completed_at === null) {
+            DB::transaction(function () use ($deposit, $wallet) {
+                $deposit->update([
+                    'status' => 'completed',
+                    'wallet_id' => $wallet->id,
+                    'completed_at' => now(),
+                    'description' => $deposit->status === 'failed' 
+                        ? 'Deposit approved (previously failed)' 
+                        : ($deposit->description ?? 'Deposit approved'),
+                ]);
+                
+                $wallet->increment('balance', $deposit->amount);
+                $wallet->increment('total_deposited', $deposit->amount);
+                
+                // Update linked transaction if exists
+                if ($deposit->transaction_id) {
+                    $transaction = \App\Models\Transaction::find($deposit->transaction_id);
+                    if ($transaction) {
+                        $transaction->update(['status' => 'completed']);
+                    }
                 }
-            }
-        });
+            });
+        }
 
         // Send receipt email
         try {

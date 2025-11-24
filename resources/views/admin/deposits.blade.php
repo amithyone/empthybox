@@ -32,18 +32,20 @@
                         <td class="py-3 px-2 text-gray-400 text-xs md:text-sm">{{ ucfirst($deposit->gateway ?? 'N/A') }}</td>
                         <td class="py-3 px-2">
                             <span class="px-2 py-1 rounded text-xs border
-                                {{ $deposit->status === 'completed' ? 'bg-green-600/20 text-green-400 border-green-500/30' : 'bg-yellow-accent/20 text-yellow-accent border-yellow-accent/30' }}">
+                                {{ $deposit->status === 'completed' ? 'bg-green-600/20 text-green-400 border-green-500/30' : ($deposit->status === 'failed' ? 'bg-red-600/20 text-red-400 border-red-500/30' : 'bg-yellow-accent/20 text-yellow-accent border-yellow-accent/30') }}">
                                 {{ ucfirst($deposit->status) }}
                             </span>
                         </td>
                         <td class="py-3 px-2">
-                            @if($deposit->status === 'pending')
+                            @if($deposit->status === 'pending' || $deposit->status === 'failed')
                             <button onclick="approveDeposit({{ $deposit->id }})" 
                                     class="bg-gradient-to-r from-red-accent to-yellow-accent hover:from-red-dark hover:to-yellow-dark text-white px-4 py-2 rounded-lg font-semibold transition text-xs md:text-sm shadow-lg shadow-red-accent/30">
-                                Approve
+                                {{ $deposit->status === 'failed' ? 'Re-approve' : 'Approve' }}
                             </button>
-                            @else
+                            @elseif($deposit->status === 'completed')
                             <span class="text-gray-500 text-xs md:text-sm">Completed</span>
+                            @else
+                            <span class="text-gray-500 text-xs md:text-sm">{{ ucfirst($deposit->status) }}</span>
                             @endif
                         </td>
                     </tr>

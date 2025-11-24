@@ -112,7 +112,7 @@ Route::middleware('auth')->group(function () {
         
         // Deposit Management
         Route::get('/deposits', [AdminController::class, 'deposits'])->name('deposits');
-        Route::post('/deposits/{transaction}/approve', [AdminController::class, 'approveDeposit'])->name('deposits.approve');
+        Route::post('/deposits/{deposit}/approve', [AdminController::class, 'approveDeposit'])->name('deposits.approve');
         
         // User Management
         Route::get('/users', [AdminController::class, 'users'])->name('users');
