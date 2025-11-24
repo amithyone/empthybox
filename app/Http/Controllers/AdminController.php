@@ -59,15 +59,12 @@ class AdminController extends Controller
                 ->whereMonth('created_at', now()->month)
                 ->whereYear('created_at', now()->year)
                 ->sum('amount'),
-            'total_deposits' => Transaction::where('type', 'deposit')
-                ->where('status', 'completed')
+            'total_deposits' => \App\Models\Deposit::where('status', 'completed')
                 ->sum('amount'),
-            'today_deposits' => Transaction::where('type', 'deposit')
-                ->where('status', 'completed')
+            'today_deposits' => \App\Models\Deposit::where('status', 'completed')
                 ->whereDate('created_at', today())
                 ->sum('amount'),
-            'pending_deposits' => Transaction::where('type', 'deposit')
-                ->where('status', 'pending')
+            'pending_deposits' => \App\Models\Deposit::where('status', 'pending')
                 ->sum('amount'),
         ];
 
@@ -312,51 +309,57 @@ class AdminController extends Controller
     // Deposit Management
     public function deposits()
     {
-        $deposits = Transaction::where('type', 'deposit')
-            ->with(['user', 'wallet'])
+        $deposits = \App\Models\Deposit::with(['user', 'wallet'])
             ->latest()
             ->paginate(20);
 
         return view('admin.deposits', compact('deposits'));
     }
 
-    public function approveDeposit(Transaction $transaction)
+    public function approveDeposit(\App\Models\Deposit $deposit)
     {
-        if ($transaction->status !== 'pending') {
+        if ($deposit->status !== 'pending') {
             return response()->json([
                 'success' => false,
                 'message' => 'This deposit has already been processed.',
             ], 400);
         }
 
-        DB::transaction(function () use ($transaction) {
-            $transaction->update(['status' => 'completed']);
-            
-            $wallet = $transaction->wallet;
-            $wallet->increment('balance', $transaction->amount);
-            $wallet->increment('total_deposited', $transaction->amount);
-
-            // Create deposit record
-            \App\Models\Deposit::create([
-                'user_id' => $transaction->user_id,
-                'wallet_id' => $wallet->id,
-                'transaction_id' => $transaction->id,
-                'amount' => $transaction->amount,
-                'final_amount' => $transaction->final_amount ?? $transaction->amount,
-                'gateway' => $transaction->gateway ?? 'manual',
-                'reference' => $transaction->reference,
+        DB::transaction(function () use ($deposit) {
+            $deposit->update([
                 'status' => 'completed',
-                'description' => $transaction->description ?? 'Deposit approved',
-                'gateway_response' => $transaction->gateway_response,
                 'completed_at' => now(),
             ]);
+            
+            $wallet = $deposit->wallet ?? \App\Models\Wallet::create([
+                'user_id' => $deposit->user_id,
+                'balance' => 0,
+                'total_deposited' => 0,
+                'total_withdrawn' => 0,
+            ]);
+            
+            $wallet->increment('balance', $deposit->amount);
+            $wallet->increment('total_deposited', $deposit->amount);
+            
+            // Update deposit with wallet_id if it wasn't set
+            if (!$deposit->wallet_id) {
+                $deposit->update(['wallet_id' => $wallet->id]);
+            }
+            
+            // Update linked transaction if exists
+            if ($deposit->transaction_id) {
+                $transaction = \App\Models\Transaction::find($deposit->transaction_id);
+                if ($transaction) {
+                    $transaction->update(['status' => 'completed']);
+                }
+            }
         });
 
         // Send receipt email
         try {
-            Mail::to($transaction->user->email)->send(new DepositReceipt($transaction->fresh()));
+            Mail::to($deposit->user->email)->send(new DepositReceipt($deposit->fresh()));
         } catch (\Exception $e) {
-            Log::error('Deposit receipt email failed', ['error' => $e->getMessage(), 'transaction_id' => $transaction->id]);
+            Log::error('Deposit receipt email failed', ['error' => $e->getMessage(), 'deposit_id' => $deposit->id]);
         }
 
         return response()->json([

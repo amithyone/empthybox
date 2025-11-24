@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaction;
 use App\Models\Wallet;
+use App\Models\Deposit;
 use App\Services\PayVibeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -42,6 +43,18 @@ class PayVibeController extends Controller
                 'balance' => 0,
             ]);
 
+            // Create pending deposit
+            $deposit = Deposit::create([
+                'user_id' => $user->id,
+                'wallet_id' => $wallet->id,
+                'amount' => $amount,
+                'gateway' => 'payvibe',
+                'status' => 'pending',
+                'reference' => $reference,
+                'description' => 'PayVibe wallet deposit',
+            ]);
+            
+            // Create transaction for backward compatibility
             $transaction = Transaction::create([
                 'user_id' => $user->id,
                 'wallet_id' => $wallet->id,
@@ -52,6 +65,9 @@ class PayVibeController extends Controller
                 'reference' => $reference,
                 'description' => 'PayVibe wallet deposit',
             ]);
+            
+            // Link deposit to transaction
+            $deposit->update(['transaction_id' => $transaction->id]);
 
             // Generate virtual account from PayVibe
             $result = $this->payVibeService->generateVirtualAccount($amount, $reference);
@@ -162,20 +178,35 @@ class PayVibeController extends Controller
                         $wallet->increment('balance', $originalAmount);
                         $wallet->increment('total_deposited', $originalAmount);
 
-                        // Create deposit record
-                        \App\Models\Deposit::create([
-                            'user_id' => $transaction->user_id,
-                            'wallet_id' => $wallet->id,
-                            'transaction_id' => $transaction->id,
-                            'amount' => $originalAmount,
-                            'final_amount' => $transactionAmount,
-                            'gateway' => 'payvibe',
-                            'reference' => $transaction->reference,
-                            'status' => 'completed',
-                            'description' => 'PayVibe wallet deposit',
-                            'gateway_response' => $transaction->gateway_response,
-                            'completed_at' => now(),
-                        ]);
+                        // Update or create deposit record
+                        $deposit = Deposit::where('transaction_id', $transaction->id)
+                            ->orWhere('reference', $transaction->reference)
+                            ->first();
+                        
+                        if ($deposit) {
+                            $deposit->update([
+                                'status' => 'completed',
+                                'amount' => $originalAmount,
+                                'final_amount' => $transactionAmount,
+                                'transaction_id' => $transaction->id,
+                                'gateway_response' => $transaction->gateway_response,
+                                'completed_at' => now(),
+                            ]);
+                        } else {
+                            Deposit::create([
+                                'user_id' => $transaction->user_id,
+                                'wallet_id' => $wallet->id,
+                                'transaction_id' => $transaction->id,
+                                'amount' => $originalAmount,
+                                'final_amount' => $transactionAmount,
+                                'gateway' => 'payvibe',
+                                'reference' => $transaction->reference,
+                                'status' => 'completed',
+                                'description' => 'PayVibe wallet deposit',
+                                'gateway_response' => $transaction->gateway_response,
+                                'completed_at' => now(),
+                            ]);
+                        }
                     });
                 }
 

@@ -90,20 +90,36 @@ class PayVibeWebhookController extends Controller
                     $wallet->increment('balance', $originalAmount);
                     $wallet->increment('total_deposited', $originalAmount);
 
-                    // Create deposit record
-                    \App\Models\Deposit::create([
-                        'user_id' => $transaction->user_id,
-                        'wallet_id' => $wallet->id,
-                        'transaction_id' => $transaction->id,
-                        'amount' => $originalAmount,
-                        'final_amount' => $transactionAmount,
-                        'gateway' => 'payvibe',
-                        'reference' => $transaction->reference,
-                        'status' => 'completed',
-                        'description' => 'PayVibe wallet deposit',
-                        'gateway_response' => $transaction->gateway_response,
-                        'completed_at' => now(),
-                    ]);
+                    // Update or create deposit record
+                    $deposit = \App\Models\Deposit::where('transaction_id', $transaction->id)
+                        ->orWhere('reference', $transaction->reference)
+                        ->first();
+                    
+                    if ($deposit) {
+                        $deposit->update([
+                            'status' => 'completed',
+                            'amount' => $originalAmount,
+                            'final_amount' => $transactionAmount,
+                            'wallet_id' => $wallet->id,
+                            'transaction_id' => $transaction->id,
+                            'gateway_response' => $transaction->gateway_response,
+                            'completed_at' => now(),
+                        ]);
+                    } else {
+                        \App\Models\Deposit::create([
+                            'user_id' => $transaction->user_id,
+                            'wallet_id' => $wallet->id,
+                            'transaction_id' => $transaction->id,
+                            'amount' => $originalAmount,
+                            'final_amount' => $transactionAmount,
+                            'gateway' => 'payvibe',
+                            'reference' => $transaction->reference,
+                            'status' => 'completed',
+                            'description' => 'PayVibe wallet deposit',
+                            'gateway_response' => $transaction->gateway_response,
+                            'completed_at' => now(),
+                        ]);
+                    }
 
                     Log::info('PayVibe Webhook: Wallet credited', [
                         'transaction_id' => $transaction->id,

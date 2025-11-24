@@ -32,19 +32,24 @@ class Wallet extends Model
         return $this->hasMany(Transaction::class);
     }
 
-    public function deposit($amount, $description = null)
+    public function deposit($amount, $description = null, $gateway = 'manual')
     {
         $this->increment('balance', $amount);
         $this->increment('total_deposited', $amount);
 
-        return Transaction::create([
+        $reference = 'WLT' . time() . rand(1000, 9999);
+        
+        // Create deposit record
+        return \App\Models\Deposit::create([
             'user_id' => $this->user_id,
             'wallet_id' => $this->id,
-            'type' => 'deposit',
             'amount' => $amount,
+            'final_amount' => $amount,
+            'gateway' => $gateway,
             'status' => 'completed',
-            'reference' => 'WLT' . time() . rand(1000, 9999),
+            'reference' => $reference,
             'description' => $description ?? 'Wallet deposit',
+            'completed_at' => now(),
         ]);
     }
 

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Transaction;
 use App\Models\Wallet;
+use App\Models\Deposit;
 use App\Services\PayVibeService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
@@ -23,11 +24,17 @@ class WalletController extends Controller
             'balance' => 0,
         ]);
         
-        $transactions = $user->transactions()
+        // Get deposits and purchases separately
+        $deposits = $user->deposits()
             ->latest()
-            ->paginate(20);
+            ->paginate(10, ['*'], 'deposits_page');
+        
+        $purchases = $user->transactions()
+            ->where('type', 'purchase')
+            ->latest()
+            ->paginate(10, ['*'], 'purchases_page');
 
-        return view('wallet.index', compact('wallet', 'transactions'));
+        return view('wallet.index', compact('wallet', 'deposits', 'purchases'));
     }
 
     public function deposit(Request $request)
@@ -58,15 +65,15 @@ class WalletController extends Controller
             return $this->handlePayVibeDeposit($request, $wallet);
         }
 
-        // Create pending transaction for other gateways
-        $transaction = Transaction::create([
+        // Create pending deposit for other gateways
+        $reference = 'DEP-' . time() . rand(1000, 9999);
+        $deposit = Deposit::create([
             'user_id' => auth()->id(),
             'wallet_id' => $wallet->id,
-            'type' => 'deposit',
             'amount' => $request->amount,
             'gateway' => $request->gateway,
             'status' => 'pending',
-            'reference' => 'DEP-' . time() . rand(1000, 9999),
+            'reference' => $reference,
             'description' => 'Wallet deposit',
         ]);
 
@@ -77,8 +84,8 @@ class WalletController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Redirecting to payment gateway...',
-            'transaction_id' => $transaction->id,
-            // 'redirect_url' => $gateway->getPaymentUrl($transaction),
+            'deposit_id' => $deposit->id,
+            // 'redirect_url' => $gateway->getPaymentUrl($deposit),
         ]);
     }
 
@@ -99,7 +106,19 @@ class WalletController extends Controller
                 ], 400);
             }
 
-            // Create pending transaction (store NGN as entered by user)
+            // Create pending deposit (store NGN as entered by user)
+            $deposit = Deposit::create([
+                'user_id' => auth()->id(),
+                'wallet_id' => $wallet->id,
+                'amount' => $request->amount,
+                'gateway' => 'payvibe',
+                'status' => 'pending',
+                'reference' => $reference,
+                'description' => 'PayVibe wallet deposit',
+                'gateway_response' => $result,
+            ]);
+
+            // Create transaction for backward compatibility (will be linked to deposit)
             $transaction = Transaction::create([
                 'user_id' => auth()->id(),
                 'wallet_id' => $wallet->id,
@@ -111,6 +130,9 @@ class WalletController extends Controller
                 'description' => 'PayVibe wallet deposit',
                 'gateway_response' => $result,
             ]);
+            
+            // Link deposit to transaction
+            $deposit->update(['transaction_id' => $transaction->id]);
 
             return response()->json([
                 'success' => true,
