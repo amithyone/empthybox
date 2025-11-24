@@ -57,7 +57,7 @@
 </div>
 
 <!-- Edit User Modal -->
-<div id="editModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+<div id="editModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-[9999] flex items-center justify-center p-4">
     <div class="bg-dark-200 border-2 border-dark-300 rounded-xl shadow-2xl max-w-md w-full p-6">
         <h3 class="text-xl font-bold mb-4 gradient-text">Edit User</h3>
         <form id="edit-user-form">

@@ -132,7 +132,7 @@
 </div>
 
 <!-- Account Guidelines Modal -->
-<div id="guidelines-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 items-center justify-center px-4 py-8 overflow-y-auto">
+<div id="guidelines-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] items-center justify-center px-4 py-8 overflow-y-auto">
     <div class="bg-dark-200 border-2 border-yellow-accent rounded-2xl shadow-2xl max-w-4xl w-full p-6 md:p-8 my-8">
         <div class="flex items-center justify-between mb-6">
             <h2 class="text-2xl md:text-3xl font-bold text-gray-200">📋 Account Guidelines</h2>

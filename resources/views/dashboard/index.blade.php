@@ -142,7 +142,7 @@
 
 <!-- PIN Setup Modal -->
 @if(empty($user->pin_hash))
-<div id="pin-setup-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-50 items-center justify-center px-4">
+<div id="pin-setup-modal" class="hidden fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] items-center justify-center px-4">
     <div class="bg-dark-200 border-2 border-yellow-accent rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8">
         <div class="text-center mb-6">
             <div class="text-5xl mb-3">🔒</div>

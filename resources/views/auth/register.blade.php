@@ -76,7 +76,7 @@
 </div>
 
 <!-- PIN Setup Modal -->
-<div id="pin-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden items-center justify-center px-4">
+<div id="pin-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-[9999] hidden items-center justify-center px-4">
     <div class="bg-dark-200 border-2 border-yellow-accent rounded-2xl shadow-2xl max-w-md w-full p-6 md:p-8">
         <div class="text-center mb-6">
             <div class="text-5xl mb-3">🔒</div>
