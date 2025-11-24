@@ -37,12 +37,15 @@ use Illuminate\Support\Facades\Storage;
                         <td class="py-3 px-2 text-gray-400 text-xs md:text-sm">{{ ucfirst($deposit->gateway ?? 'N/A') }}</td>
                         <td class="py-3 px-2">
                             @if($deposit->manualPayment && $deposit->manualPayment->receipt_path)
-                                <a href="{{ Storage::url($deposit->manualPayment->receipt_path) }}" 
-                                   target="_blank" 
-                                   class="inline-flex items-center gap-1 text-yellow-accent hover:text-red-accent transition text-xs md:text-sm">
+                                @php
+                                    $receiptUrl = Storage::url($deposit->manualPayment->receipt_path);
+                                    $isImage = in_array(strtolower(pathinfo($deposit->manualPayment->receipt_path, PATHINFO_EXTENSION)), ['jpg', 'jpeg', 'png', 'gif', 'webp']);
+                                @endphp
+                                <button onclick="openReceiptLightbox('{{ $receiptUrl }}', {{ $isImage ? 'true' : 'false' }})" 
+                                        class="inline-flex items-center gap-1 text-yellow-accent hover:text-red-accent transition text-xs md:text-sm cursor-pointer">
                                     <span>📄</span>
                                     <span>View Receipt</span>
-                                </a>
+                                </button>
                             @elseif($deposit->gateway === 'manual')
                                 <span class="text-gray-500 text-xs md:text-sm">No receipt</span>
                             @else
@@ -86,6 +89,18 @@ use Illuminate\Support\Facades\Storage;
     @endif
 </div>
 
+<!-- Receipt Lightbox Modal -->
+<div id="receipt-lightbox" class="hidden fixed inset-0 bg-black/90 backdrop-blur-sm z-[9999] items-center justify-center p-4" onclick="closeReceiptLightbox(event)">
+    <div class="relative max-w-4xl w-full max-h-[90vh] bg-dark-200 rounded-xl shadow-2xl overflow-hidden" onclick="event.stopPropagation()">
+        <button onclick="closeReceiptLightbox()" class="absolute top-4 right-4 z-10 bg-red-accent hover:bg-red-600 text-white rounded-full w-10 h-10 flex items-center justify-center transition shadow-lg">
+            <span class="text-2xl font-bold">&times;</span>
+        </button>
+        <div id="receipt-content" class="p-4 overflow-auto max-h-[90vh]">
+            <!-- Content will be loaded here -->
+        </div>
+    </div>
+</div>
+
 @section('scripts')
 <script>
 async function approveDeposit(transactionId) {
@@ -115,6 +130,40 @@ async function approveDeposit(transactionId) {
         showAlert('An error occurred. Please try again.', 'error');
     }
 }
+
+function openReceiptLightbox(url, isImage) {
+    const lightbox = document.getElementById('receipt-lightbox');
+    const content = document.getElementById('receipt-content');
+    
+    if (isImage) {
+        content.innerHTML = `<img src="${url}" alt="Receipt" class="w-full h-auto rounded-lg shadow-lg">`;
+    } else {
+        // For PDFs, use an iframe
+        content.innerHTML = `<iframe src="${url}" class="w-full h-[80vh] rounded-lg shadow-lg" frameborder="0"></iframe>`;
+    }
+    
+    lightbox.classList.remove('hidden');
+    lightbox.classList.add('flex');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeReceiptLightbox(event) {
+    if (event && event.target.id !== 'receipt-lightbox') {
+        return;
+    }
+    
+    const lightbox = document.getElementById('receipt-lightbox');
+    lightbox.classList.add('hidden');
+    lightbox.classList.remove('flex');
+    document.body.style.overflow = '';
+}
+
+// Close on Escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeReceiptLightbox();
+    }
+});
 </script>
 @endsection
 
