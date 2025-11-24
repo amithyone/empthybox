@@ -364,6 +364,7 @@ class AdminController extends Controller
 
         // Send receipt email
         try {
+            $deposit->load('user'); // Ensure user relationship is loaded
             Mail::to($deposit->user->email)->send(new DepositReceipt($deposit->fresh()));
         } catch (\Exception $e) {
             Log::error('Deposit receipt email failed', ['error' => $e->getMessage(), 'deposit_id' => $deposit->id]);
